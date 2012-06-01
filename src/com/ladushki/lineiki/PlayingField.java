@@ -33,26 +33,11 @@ public class PlayingField extends Entity implements ITouchArea {
 	final int TILE_WIDTH = 35;
 	final int TILE_HEIGHT = 35;
 
-	private static final Random RANDOM = new Random();
-
-	GameState mGameState;
 	TiledTextureRegion mTextureRegion;
-	BallDispencer mDispencer; 
 	MapTile [][] mField;
 	
-	
-	Point mSelectedSource;
-	Point mSelectedDestination;
-	private ChangeableText mScoreField;
-	private int mScore;
-	
-	public PlayingField(TiledTextureRegion pTextureRegion, BallDispencer pDispencer) {
+	public PlayingField(TiledTextureRegion pTextureRegion) {
 		this.mTextureRegion = pTextureRegion;	
-		this.mDispencer = pDispencer;
-		this.mGameState = GameState.SELECT_BALL;
-		this.mSelectedSource = new Point(-1, -1);
-		this.mSelectedDestination = new Point(-1, -1);
-		mScore = 0;
 		mField = new MapTile[FIELD_WIDTH][FIELD_HEIGHT]; 
 		initBackground();
 		/*try {
@@ -109,42 +94,7 @@ public class PlayingField extends Entity implements ITouchArea {
 			final int x = (int) pSceneTouchEvent.getX() / TILE_WIDTH;
 			final int y = (int) pSceneTouchEvent.getY() / TILE_HEIGHT;
 			
-			final MapTile tile = this.getTileAt(x, y);
-			final BallSprite ball = tile.getBall();
-			
-			switch(this.mGameState) {
-			case SELECT_BALL:
-				if (ball != null) {
-					this.mSelectedSource.set(x,y);
-					this.mGameState = GameState.SELECT_DESTINATION;
-					tile.startBlinking();
-				}
-				break;
-			case SELECT_DESTINATION:
-				if (ball == null) {
-					/// selected an empty cell, move the ball there if possible
-					this.mSelectedDestination.set(x,y);
-					boolean ballMoved = moveBall(this.mSelectedSource, this.mSelectedDestination);
-					this.mGameState = GameState.SELECT_BALL;
-					if (ballMoved) {
-						try {
-							dropNextBalls();
-						} catch (GameOverException e) {
-							gameOver();
-						}
-					}
-					MapTile prevTile = getTileAt(mSelectedSource.x, mSelectedSource.y);
-					prevTile.stopBlinking();
-				} else {
-					/// selected another ball, deselect the current one and select the new one
-					MapTile prevTile = getTileAt(mSelectedSource.x, mSelectedSource.y);
-					prevTile.stopBlinking();
-					this.mSelectedSource.set(x,y);
-					this.mGameState = GameState.SELECT_DESTINATION;
-					tile.startBlinking();
-				}
-				break;
-			}		
+			/// TODO: call GameLogic.onTileTouched
 			return true;
 		}
 		return false;

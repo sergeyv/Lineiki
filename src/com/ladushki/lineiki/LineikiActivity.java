@@ -56,6 +56,9 @@ public class LineikiActivity extends BaseGameActivity {
 	private BitmapTextureAtlas mFontTexture;
 	private Font mFont;
 	
+	
+	private GameLogic mGameLogic;
+	
 	@Override
 	public FontManager getFontManager() {
 		/// BaseActivity.getFontManager has a bug
@@ -119,15 +122,18 @@ public class LineikiActivity extends BaseGameActivity {
 		scene.attachChild(disp);
 
 		
-		final PlayingField field = new PlayingField(this.mTextureRegion, disp);
-		scene.attachChild(field);
-		scene.registerTouchArea(field);	
+		final PlayingField playingField = new PlayingField(this.mTextureRegion);
+		scene.attachChild(playingField);
+		scene.registerTouchArea(playingField);	
 		scene.setTouchAreaBindingEnabled(true);
 			
 		final ChangeableText scoreField = new ChangeableText(100, 400, this.mFont, "000", HorizontalAlign.CENTER, "000".length());
 		scene.attachChild(scoreField);
-		field.setScoreField(scoreField);
 
+		
+		mGameLogic = new GameLogic(playingField, disp);
+		mGameLogic.setScoreField(scoreField);
+		
 		return scene;
 
 		
