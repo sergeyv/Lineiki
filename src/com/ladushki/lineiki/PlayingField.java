@@ -55,12 +55,12 @@ public class PlayingField extends Entity implements ITouchArea {
 		mScore = 0;
 		mField = new MapTile[FIELD_WIDTH][FIELD_HEIGHT]; 
 		initBackground();
-		try {
+		/*try {
 			dropNextBalls();
 		} catch (GameOverException e) {
 			// TODO Auto-generated catch block
 			//e.printStackTrace();
-		}
+		}*/
 	}
 
 	private void initBackground() {
@@ -148,163 +148,5 @@ public class PlayingField extends Entity implements ITouchArea {
 			return true;
 		}
 		return false;
-	}
-
-	private void gameOver() {
-		
-		
-	}
-
-	private void dropNextBalls() throws GameOverException {
-		BallColor[] next_colors = mDispencer.getNextBalls();
-		for (int i = 0; i < next_colors.length; i++) {
-			MapTile free_tile = getFreeTile();
-			if (free_tile == null) {
-				throw new GameOverException();
-			}
-			addBall(free_tile, next_colors[i]);
-		}
-		removeLines();
-
-	}
-	
-	private boolean moveBall(Point pSource, Point pDest) {
-		/*
-		 * Returns true if the ball is successfully moved, false if
-		 * it can't be moved
-		 */
-		MapTile src = getTileAt(pSource.x, pSource.y);
-		MapTile dest = getTileAt(pDest.x, pDest.y);
-		
-		for (int j = 0; j < FIELD_HEIGHT; j++) {
-			for (int i = 0; i < FIELD_WIDTH; i++) {
-				final MapTile tile = this.mField[i][j];
-				tile.stopBlinking();
-			}
-		}
-
-		Point[] path = findPath(pSource, pDest);
-		
-		if (path == null) {
-			return false;
-		}
-					
-		for (int i = 0; i < path.length; i++) {
-			Point p = path[i];
-			final MapTile tile = this.mField[p.x][p.y];
-			tile.startBlinking();
-		}
-		dest.setBall(src.detachBall());
-		removeLines();
-		return true;
-	}
-
-	MapTile getFreeTile() {
-		ArrayList<MapTile> freePoints = new ArrayList<MapTile>();
-		for (int j = 0; j < FIELD_HEIGHT; j++) {
-			for (int i = 0; i < FIELD_WIDTH; i++) {
-				final MapTile tile = this.mField[i][j];
-				if (tile.getBall() == null) {
-					freePoints.add(tile);
-				}
-			}
-		}
-		if (freePoints.size() == 0) {
-			return null;
-		}
-		
-		return freePoints.get(RANDOM.nextInt(freePoints.size()));
-	}
-	
-	Point[] findPath(Point pSource, Point pDest) {
-		/*
-		 * Finds a path from pSource to pDest, if no path exists returns null
-		 */
-		
-		PathFinder finder = new PathFinder(FIELD_WIDTH, FIELD_HEIGHT);
-		for (int y = 0; y < FIELD_HEIGHT; y++) {
-			for (int x = 0; x < FIELD_WIDTH; x++) {
-				MapTile tile = this.getTileAt(x, y);
-				finder.setPassable(x, y, !tile.isOccupied());
-			}
-		}
-		return finder.findPath(pSource.x, pSource.y, pDest.x, pDest.y);
-	}
-	
-	void removeLines() {
-		SequenceChecker checker = new SequenceChecker();
-		
-		/// check horizontals
-		for (int j = 0; j < FIELD_HEIGHT; j++) {
-			checker.startRow();
-			for (int i = 0; i < FIELD_WIDTH; i++) {
-				final MapTile tile = this.mField[i][j];
-				checker.check(tile);
-			}
-		}
-		
-		/// check verticals
-		for (int j = 0; j < FIELD_WIDTH; j++) {
-			checker.startRow();
-			for (int i = 0; i < FIELD_HEIGHT; i++) {
-				final MapTile tile = this.mField[j][i];
-				checker.check(tile);
-			}
-		}
-
-		/// check diagonals (top-right to bottom-left)
-		for (int j = 0; j < FIELD_WIDTH; j++) {
-			checker.startRow();
-			for (int i = 0; i < FIELD_HEIGHT; i++) {
-				int y = i; 
-				int x = j + 4 - y;
-				if (x < 0) continue;
-				if (x >= FIELD_WIDTH) continue;
-				
-				final MapTile tile = this.mField[x][y];
-				checker.check(tile);
-			}
-		}
-
-		/// check diagonals (top-left to bottom-right)
-		for (int j = 0; j < FIELD_WIDTH; j++) {
-			checker.startRow();
-			for (int i = 0; i < FIELD_HEIGHT; i++) {
-				int y = i; 
-				int x = j - 4 + y;
-				if (x < 0) continue;
-				if (x >= FIELD_WIDTH) continue;
-				
-				final MapTile tile = this.mField[x][y];
-				checker.check(tile);
-			}
-		}
-
-		MapTile[] tiles_to_remove = checker.getMatchedTiles();
-		
-		if (tiles_to_remove != null) {
-			
-			/// score stuff
-			this.addScore(tiles_to_remove.length);
-			
-			for (MapTile tile : tiles_to_remove) {
-				tile.setBall(null);
-			}
-		}
-	}
-
-	public void setScoreField(ChangeableText pField) {
-		this.mScoreField = pField;
-		this.mScoreField.setText("!!!");
-		
-	}
-	
-	public void setScore(int pScore) {
-		this.mScore = pScore;
-		this.mScoreField.setText(Integer.toString(mScore));
-	}
-	
-	public void addScore(int pScore) {
-		setScore(this.mScore + pScore);
 	}
 }
