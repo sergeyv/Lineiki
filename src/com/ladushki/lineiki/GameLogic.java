@@ -9,6 +9,14 @@ import android.graphics.Point;
 
 public class GameLogic implements IGameEvent {
 	
+	private enum GameState {
+		SELECT_BALL,
+		SELECT_DESTINATION,
+		MOVING_BALL,
+		DROPPING_NEW_BALLS
+	}
+
+	
 	GameState mGameState;
 	BallDispencer mDispencer; 
 	PlayingField mPlayingField;
