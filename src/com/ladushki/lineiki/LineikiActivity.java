@@ -120,6 +120,8 @@ public class LineikiActivity extends BaseGameActivity {
 		final BallDispencer disp = new BallDispencer(this.mTextureRegion);
 		disp.setPosition(100,320);
 		scene.attachChild(disp);
+		
+		
 
 		
 		final PlayingField playingField = new PlayingField(this.mTextureRegion);
@@ -133,6 +135,10 @@ public class LineikiActivity extends BaseGameActivity {
 		
 		mGameLogic = new GameLogic(playingField, disp);
 		mGameLogic.setScoreField(scoreField);
+		
+		playingField.setEvent(mGameLogic);
+
+		mGameLogic.startGame();
 		
 		return scene;
 

@@ -7,7 +7,7 @@ import org.anddev.andengine.entity.text.ChangeableText;
 
 import android.graphics.Point;
 
-public class GameLogic {
+public class GameLogic implements IGameEvent {
 	
 	GameState mGameState;
 	BallDispencer mDispencer; 
@@ -34,6 +34,14 @@ public class GameLogic {
 		this.mSelectedSource = new Point(-1, -1);
 		this.mSelectedDestination = new Point(-1, -1);
 
+	}
+
+	public void startGame() {
+		try {
+			dropNextBalls();
+		} catch (GameOverException e) {
+			// TODO
+		}
 	}
 
 	private void dropNextBalls() throws GameOverException {

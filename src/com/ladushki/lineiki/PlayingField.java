@@ -36,16 +36,12 @@ public class PlayingField extends Entity implements ITouchArea {
 	TiledTextureRegion mTextureRegion;
 	MapTile [][] mField;
 	
+	IGameEvent mEvent;
+	
 	public PlayingField(TiledTextureRegion pTextureRegion) {
 		this.mTextureRegion = pTextureRegion;	
 		mField = new MapTile[FIELD_WIDTH][FIELD_HEIGHT]; 
 		initBackground();
-		/*try {
-			dropNextBalls();
-		} catch (GameOverException e) {
-			// TODO Auto-generated catch block
-			//e.printStackTrace();
-		}*/
 	}
 
 	private void initBackground() {
@@ -93,10 +89,13 @@ public class PlayingField extends Entity implements ITouchArea {
 		if (pSceneTouchEvent.getAction() == TouchEvent.ACTION_DOWN) {
 			final int x = (int) pSceneTouchEvent.getX() / TILE_WIDTH;
 			final int y = (int) pSceneTouchEvent.getY() / TILE_HEIGHT;
-			
-			/// TODO: call GameLogic.onTileTouched
+			mEvent.onTileTouched(x,y);
 			return true;
 		}
 		return false;
+	}
+
+	public void setEvent(IGameEvent pEvent) {
+		this.mEvent = pEvent;
 	}
 }
