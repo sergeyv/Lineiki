@@ -124,7 +124,7 @@ public class LineikiActivity extends BaseGameActivity {
 		
 
 		
-		final PlayingField playingField = new PlayingField(this.mTextureRegion);
+		final PlayingField playingField = new PlayingField(this.mTextureRegion, this);
 		scene.attachChild(playingField);
 		scene.registerTouchArea(playingField);	
 		scene.setTouchAreaBindingEnabled(true);

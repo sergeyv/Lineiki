@@ -34,17 +34,15 @@ public class GameLogic implements IGameEvent {
 	public GameLogic(PlayingField pPlayingField, BallDispencer pDispencer) {
 		mPlayingField = pPlayingField;
 		mDispencer = pDispencer;
-		
+	}
 
-		/// TODO: move to init/gameStart method
+	public void startGame() {
+		
 		mScore = 0;
 		this.mGameState = GameState.SELECT_BALL;
 		this.mSelectedSource = new Point(-1, -1);
 		this.mSelectedDestination = new Point(-1, -1);
 
-	}
-
-	public void startGame() {
 		try {
 			dropNextBalls();
 		} catch (GameOverException e) {
@@ -70,28 +68,15 @@ public class GameLogic implements IGameEvent {
 		 * Returns true if the ball is successfully moved, false if
 		 * it can't be moved
 		 */
-		MapTile src = mPlayingField.getTileAt(pSource.x, pSource.y);
-		MapTile dest = mPlayingField.getTileAt(pDest.x, pDest.y);
 		
-		for (int j = 0; j < mPlayingField.FIELD_HEIGHT; j++) {
-			for (int i = 0; i < mPlayingField.FIELD_WIDTH; i++) {
-				final MapTile tile = mPlayingField.getTileAt(i,j);
-				tile.stopBlinking();
-			}
-		}
-
 		Point[] path = findPath(pSource, pDest);
 		
 		if (path == null) {
 			return false;
 		}
-					
-		for (int i = 0; i < path.length; i++) {
-			Point p = path[i];
-			final MapTile tile = mPlayingField.getTileAt(p.x,p.y);
-			tile.startBlinking();
-		}
-		dest.setBall(src.detachBall());
+		
+		mPlayingField.animateMovingBall(pSource, pDest, path);
+		
 		removeLines();
 		return true;
 	}
