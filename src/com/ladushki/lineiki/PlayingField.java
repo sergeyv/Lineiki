@@ -7,10 +7,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Random;
 
+import javax.microedition.khronos.opengles.GL10;
+
 import org.anddev.andengine.entity.Entity;
 import org.anddev.andengine.entity.IEntity;
 import org.anddev.andengine.entity.modifier.AlphaModifier;
 import org.anddev.andengine.entity.modifier.DelayModifier;
+import org.anddev.andengine.entity.modifier.FadeInModifier;
+import org.anddev.andengine.entity.modifier.FadeOutModifier;
 import org.anddev.andengine.entity.modifier.LoopEntityModifier;
 import org.anddev.andengine.entity.modifier.MoveModifier;
 import org.anddev.andengine.entity.modifier.ParallelEntityModifier;
@@ -126,6 +130,50 @@ public class PlayingField extends Entity implements ITouchArea {
 		this.mEvent = pEvent;
 	}
 	
+	private void createPathBreadcrumb(int x, int y, int num, int totalDots) {
+		AnimatedSprite dot = new AnimatedSprite(x, y, mTextureRegion);
+		dot.setCurrentTileIndex(90);
+		
+		dot.setAlpha(0.0f);
+		dot.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
+
+		dot.registerEntityModifier(new SequenceEntityModifier(
+					new IEntityModifierListener() {
+
+						@Override
+						public void onModifierStarted(
+								IModifier<IEntity> pModifier, IEntity pItem) {
+							// TODO Auto-generated method stub
+							
+						}
+
+						@Override
+						public void onModifierFinished(
+								IModifier<IEntity> pModifier, IEntity pItem) {
+							
+							final IEntity item = pItem;
+							mParentActivity.runOnUiThread(new Runnable() {
+								@Override
+								public void run() {
+									//Toast.makeText(mParentActivity, "Sequence finished.", Toast.LENGTH_SHORT).show();
+									//pItem.clearEntityModifiers();
+									detachChild(item);
+								}
+							});
+
+							
+						}
+					},
+					new DelayModifier(num * 0.1f),
+					new AlphaModifier(0.3f, 0.0f, 1.0f),
+					new DelayModifier(0.1f*totalDots)//,
+					//new AlphaModifier(0.3f, 1.0f, 0.0f)
+				)
+		);
+		
+		attachChild(dot);
+	}
+	
 	public void animateMovingBall(Point pSource, Point pDest, Point [] pPath) {
 		Point srcPt = pSource;
 		Point destPt = pDest;
@@ -142,24 +190,21 @@ public class PlayingField extends Entity implements ITouchArea {
 		
 		final BallSprite ball = src.getBall();
 		
-		for (int i = 0; i < pPath.length; i++) {
+		int dotNum = 0;
+		
+		for (int i = pPath.length - 1; i >= 0; i--) {
 			Point p = pPath[i];
-			AnimatedSprite dot = new AnimatedSprite(p.x*35, p.y*35,mTextureRegion);
-			dot.setCurrentTileIndex(90);
-			attachChild(dot);
+			createPathBreadcrumb(p.x*35, p.y*35, dotNum++, pPath.length*2);
 			
-			if (i < pPath.length - 1) {
-				Point next = pPath[i+1];
+			if (i > 0) {
+				Point next = pPath[i-1];
 				p.x = (p.x*35 + next.x*35)/2;
 				p.y = (p.y*35 + next.y*35)/2;
-				dot = new AnimatedSprite(p.x, p.y,mTextureRegion);
-				dot.setCurrentTileIndex(90);
-				
-				attachChild(dot);
+				createPathBreadcrumb(p.x, p.y, dotNum++, pPath.length*2);
 			}
 		}
 		
-		final Path path = new Path(5).to(-5, -5).to(-5, 5).to(5, 5).to(5, -5).to(-5, -5);
+		//final Path path = new Path(5).to(-5, -5).to(-5, 5).to(5, 5).to(5, -5).to(-5, -5);
 
 		/* Add the proper animation when a waypoint of the path is passed. */
 		//ball.registerEntityModifier(new MoveModifier(5, srcPt.x*32.0f, destPt.x*32.0f, srcPt.y*32.0f, destPt.y*32.0f)
@@ -194,7 +239,7 @@ public class PlayingField extends Entity implements ITouchArea {
 		}*/
 		dest.setBall(src.detachBall());
 		
-		ball.setZIndex(999);
+		//ball.setZIndex(999);
 
 	}
 }
