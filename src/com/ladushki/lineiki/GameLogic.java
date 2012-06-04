@@ -57,7 +57,7 @@ public class GameLogic implements IGameEvent {
 			if (free_tile == null) {
 				throw new GameOverException();
 			}
-			mPlayingField.addBall(free_tile, next_colors[i]);
+			mPlayingField.addBall(free_tile, next_colors[i], i);
 		}
 		removeLines();
 
@@ -77,8 +77,17 @@ public class GameLogic implements IGameEvent {
 		
 		mPlayingField.animateMovingBall(pSource, pDest, path);
 		
-		removeLines();
 		return true;
+	}
+	
+	public void onMovingBallFinished() {
+		removeLines();			
+		this.mGameState = GameState.SELECT_BALL;
+		try {
+			dropNextBalls();
+		} catch (GameOverException e) {
+			//gameOver(); TODO: Game over
+		}
 	}
 
 	MapTile getFreeTile() {
@@ -170,7 +179,7 @@ public class GameLogic implements IGameEvent {
 			this.addScore(tiles_to_remove.length);
 			
 			for (MapTile tile : tiles_to_remove) {
-				tile.setBall(null);
+				mPlayingField.clearTile(tile);
 			}
 		}
 	}
@@ -210,14 +219,6 @@ public class GameLogic implements IGameEvent {
 				/// selected an empty cell, move the ball there if possible
 				this.mSelectedDestination.set(x,y);
 				boolean ballMoved = moveBall(this.mSelectedSource, this.mSelectedDestination);
-				this.mGameState = GameState.SELECT_BALL;
-				if (ballMoved) {
-					try {
-						dropNextBalls();
-					} catch (GameOverException e) {
-						//gameOver(); TODO: Game over
-					}
-				}
 				MapTile prevTile = mPlayingField.getTileAt(mSelectedSource.x, mSelectedSource.y);
 				prevTile.stopBlinking();
 			} else {

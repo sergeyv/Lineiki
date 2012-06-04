@@ -200,6 +200,10 @@ public class LineikiActivity extends BaseGameActivity {
 	    }
 	    return dialog;
 	}
+	
+    public void runOnUpdateThread(final Runnable pRunnable) {
+        this.mEngine.runOnUpdateThread(pRunnable);
+    }
 	/*@Override
 	public void onScroll(ScrollDetector pScollDetector, TouchEvent pTouchEvent,
 			float pDistanceX, float pDistanceY) {

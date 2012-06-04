@@ -58,7 +58,7 @@ public class PlayingField extends Entity implements ITouchArea {
 	final int TILE_WIDTH = 35;
 	final int TILE_HEIGHT = 35;
 
-	Activity mParentActivity;
+	LineikiActivity mParentActivity;
 	
 	TiledTextureRegion mTextureRegion;
 	MapTile [][] mField;
@@ -66,7 +66,7 @@ public class PlayingField extends Entity implements ITouchArea {
 	IGameEvent mEvent;
 	
 	
-	public PlayingField(TiledTextureRegion pTextureRegion, Activity pParentActivity) {
+	public PlayingField(TiledTextureRegion pTextureRegion, LineikiActivity pParentActivity) {
 		
 		mParentActivity = pParentActivity;
 		
@@ -87,18 +87,27 @@ public class PlayingField extends Entity implements ITouchArea {
 
 	}
 	
-	public BallSprite addBall(int pX, int pY, BallColor pColor) {
+	/*public BallSprite addBall(int pX, int pY, BallColor pColor, int num) {
 		final BallSprite ball = new BallSprite(0, 0, this.mTextureRegion.deepCopy(), pColor);
 		this.getTileAt(pX, pY).setBall(ball);
 		
+		
 		return ball;
 
-	}
+	}*/
 
-	public BallSprite addBall(MapTile tile, BallColor pColor) {
+	public BallSprite addBall(MapTile tile, BallColor pColor, int num) {
 		final BallSprite ball = new BallSprite(0, 0, this.mTextureRegion.deepCopy(), pColor);
 		tile.setBall(ball);
 		
+		ball.setScale(0.0f);
+		
+		ball.registerEntityModifier(new SequenceEntityModifier(
+				new DelayModifier(0.3f*num),
+				new ScaleModifier(0.3f, 0.0f, 1.2f),
+				new ScaleModifier(0.2f, 1.2f, 1.0f)
+				));
+
 		return ball;
 
 	}
@@ -143,8 +152,6 @@ public class PlayingField extends Entity implements ITouchArea {
 						@Override
 						public void onModifierStarted(
 								IModifier<IEntity> pModifier, IEntity pItem) {
-							// TODO Auto-generated method stub
-							
 						}
 
 						@Override
@@ -152,11 +159,9 @@ public class PlayingField extends Entity implements ITouchArea {
 								IModifier<IEntity> pModifier, IEntity pItem) {
 							
 							final IEntity item = pItem;
-							mParentActivity.runOnUiThread(new Runnable() {
+							mParentActivity.runOnUpdateThread(new Runnable() {
 								@Override
 								public void run() {
-									//Toast.makeText(mParentActivity, "Sequence finished.", Toast.LENGTH_SHORT).show();
-									//pItem.clearEntityModifiers();
 									detachChild(item);
 								}
 							});
@@ -164,10 +169,10 @@ public class PlayingField extends Entity implements ITouchArea {
 							
 						}
 					},
-					new DelayModifier(num * 0.1f),
-					new AlphaModifier(0.3f, 0.0f, 1.0f),
-					new DelayModifier(0.1f*totalDots)//,
-					//new AlphaModifier(0.3f, 1.0f, 0.0f)
+					new DelayModifier(num * 0.03f),
+					new AlphaModifier(0.1f, 0.0f, 1.0f),
+					new DelayModifier(0.03f*totalDots),
+					new AlphaModifier(0.2f, 1.0f, 0.0f)
 				)
 		);
 		
@@ -183,13 +188,7 @@ public class PlayingField extends Entity implements ITouchArea {
 				final MapTile tile = getTileAt(i,j);
 				tile.stopBlinking();
 			}
-		}*/
-		
-		MapTile src = getTileAt(srcPt.x, srcPt.y);
-		MapTile dest = getTileAt(destPt.x, destPt.y);
-		
-		final BallSprite ball = src.getBall();
-		
+		}*/		
 		int dotNum = 0;
 		
 		for (int i = pPath.length - 1; i >= 0; i--) {
@@ -203,6 +202,53 @@ public class PlayingField extends Entity implements ITouchArea {
 				createPathBreadcrumb(p.x, p.y, dotNum++, pPath.length*2);
 			}
 		}
+		
+		final MapTile src = getTileAt(srcPt.x, srcPt.y);
+		final MapTile dest = getTileAt(destPt.x, destPt.y);
+		
+		final BallSprite ball = src.getBall();
+
+		/// wait until the dots are drawn
+		/*registerEntityModifier(
+				})
+			);*/
+		
+		ball.registerEntityModifier(new SequenceEntityModifier(
+					new ScaleModifier(0.2f, 1.0f, 1.2f),
+					new ScaleModifier(0.3f, 1.2f, 0.0f),
+					new DelayModifier(0.0f,
+						new IEntityModifierListener() {
+
+							@Override
+							public void onModifierStarted(IModifier<IEntity> pModifier,
+									IEntity pItem) {
+							}
+
+							@Override
+							public void onModifierFinished(
+									IModifier<IEntity> pModifier, IEntity pItem) {
+								dest.setBall(src.detachBall());
+							}
+						}),
+					new ScaleModifier(0.3f, 0.0f, 1.2f),
+					new ScaleModifier(0.2f, 1.2f, 1.0f),
+					new DelayModifier(0.0f,
+							new IEntityModifierListener() {
+
+								@Override
+								public void onModifierStarted(IModifier<IEntity> pModifier,
+										IEntity pItem) {
+								}
+
+								@Override
+								public void onModifierFinished(
+										IModifier<IEntity> pModifier, IEntity pItem) {
+									mEvent.onMovingBallFinished();
+								}
+							})
+					));
+		
+		
 		
 		//final Path path = new Path(5).to(-5, -5).to(-5, 5).to(5, 5).to(5, -5).to(-5, -5);
 
@@ -237,9 +283,39 @@ public class PlayingField extends Entity implements ITouchArea {
 			final MapTile tile = getTileAt(p.x,p.y);
 			tile.startBlinking();
 		}*/
-		dest.setBall(src.detachBall());
-		
 		//ball.setZIndex(999);
+
+	}
+
+	public void clearTile(final MapTile tile) {
+		BallSprite ball = tile.getBall();
+		ball.registerEntityModifier(new SequenceEntityModifier(
+				new IEntityModifierListener() {
+
+					@Override
+					public void onModifierStarted(
+							IModifier<IEntity> pModifier, IEntity pItem) {
+					}
+
+					@Override
+					public void onModifierFinished(
+							IModifier<IEntity> pModifier, IEntity pItem) {
+						
+						final IEntity item = pItem;
+						mParentActivity.runOnUpdateThread(new Runnable() {
+							@Override
+							public void run() {
+								tile.setBall(null);
+							}
+						});
+
+						
+					}
+				},
+				new ScaleModifier(0.2f, 1.0f, 1.2f),
+				new ScaleModifier(0.3f, 1.2f, 0.0f)
+			)
+	);
 
 	}
 }
