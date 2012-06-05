@@ -138,7 +138,7 @@ public class GameLogic implements IGameEvent {
 		for (int j = 0; j < mPlayingField.FIELD_WIDTH; j++) {
 			checker.startRow();
 			for (int i = 0; i < mPlayingField.FIELD_HEIGHT; i++) {
-				final MapTile tile = mPlayingField.getTileAt(i, j);
+				final MapTile tile = mPlayingField.getTileAt(j, i);
 				checker.check(tile);
 			}
 		}
