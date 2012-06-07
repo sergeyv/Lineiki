@@ -67,12 +67,11 @@ public class LineikiActivity extends BaseGameActivity {
 	}
 
 	
-	@Override
+	/*@Override
 	public void onLoadComplete() {
 		Toast.makeText(this, "Load Complete!", Toast.LENGTH_LONG).show();
-	}
+	}*/
 
-	@Override
 	public Engine onLoadEngine() {
 		this.mCamera = new ZoomCamera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
 
@@ -91,10 +90,11 @@ public class LineikiActivity extends BaseGameActivity {
 			engineOptions.setNeedsMusic(true);
 
 		return new Engine(engineOptions);
+		
+
 
 	}
 
-	@Override
 	public void onLoadResources() {
 		BitmapTextureAtlasTextureRegionFactory.setAssetBasePath("gfx/");
 		
@@ -110,7 +110,6 @@ public class LineikiActivity extends BaseGameActivity {
 		this.getFontManager().loadFont(this.mFont);
 	}
 
-	@Override
 	public Scene onLoadScene() {
 		this.mEngine.registerUpdateHandler(new FPSLogger());
 		final Scene scene = new Scene();
@@ -210,6 +209,12 @@ public class LineikiActivity extends BaseGameActivity {
 		Log.d(TAG, "Scroll {x:"+pDistanceX+", y: "+pDistanceY+"}");  
 		this.mCamera.offsetCenter(-pDistanceX, -pDistanceY);
 	}*/
+
+
+	public void onLoadComplete() {
+		// TODO Auto-generated method stub
+		
+	}
 
 	/*@Override
 	public boolean onSceneTouchEvent(Scene pScene, TouchEvent pSceneTouchEvent) {

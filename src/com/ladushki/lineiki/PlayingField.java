@@ -116,7 +116,6 @@ public class PlayingField extends Entity implements ITouchArea {
 		return this.mField[pX][pY];
 	}
 
-	@Override
 	public boolean contains(float pX, float pY) {
 		if (pX < FIELD_WIDTH * TILE_WIDTH && pY < FIELD_HEIGHT*TILE_HEIGHT) {
 			return true;
@@ -124,7 +123,6 @@ public class PlayingField extends Entity implements ITouchArea {
 		return false;
 	}
 
-	@Override
 	public boolean onAreaTouched(final TouchEvent pSceneTouchEvent, final float pTouchAreaLocalX, final float pTouchAreaLocalY) {
 		if (pSceneTouchEvent.getAction() == TouchEvent.ACTION_DOWN) {
 			final int x = (int) pSceneTouchEvent.getX() / TILE_WIDTH;
@@ -149,18 +147,15 @@ public class PlayingField extends Entity implements ITouchArea {
 		dot.registerEntityModifier(new SequenceEntityModifier(
 					new IEntityModifierListener() {
 
-						@Override
 						public void onModifierStarted(
 								IModifier<IEntity> pModifier, IEntity pItem) {
 						}
 
-						@Override
 						public void onModifierFinished(
 								IModifier<IEntity> pModifier, IEntity pItem) {
 							
 							final IEntity item = pItem;
 							mParentActivity.runOnUpdateThread(new Runnable() {
-								@Override
 								public void run() {
 									detachChild(item);
 								}
@@ -219,12 +214,10 @@ public class PlayingField extends Entity implements ITouchArea {
 					new DelayModifier(0.0f,
 						new IEntityModifierListener() {
 
-							@Override
 							public void onModifierStarted(IModifier<IEntity> pModifier,
 									IEntity pItem) {
 							}
 
-							@Override
 							public void onModifierFinished(
 									IModifier<IEntity> pModifier, IEntity pItem) {
 								dest.setBall(src.detachBall());
@@ -235,12 +228,10 @@ public class PlayingField extends Entity implements ITouchArea {
 					new DelayModifier(0.0f,
 							new IEntityModifierListener() {
 
-								@Override
 								public void onModifierStarted(IModifier<IEntity> pModifier,
 										IEntity pItem) {
 								}
 
-								@Override
 								public void onModifierFinished(
 										IModifier<IEntity> pModifier, IEntity pItem) {
 									mEvent.onMovingBallFinished();
@@ -292,18 +283,15 @@ public class PlayingField extends Entity implements ITouchArea {
 		ball.registerEntityModifier(new SequenceEntityModifier(
 				new IEntityModifierListener() {
 
-					@Override
 					public void onModifierStarted(
 							IModifier<IEntity> pModifier, IEntity pItem) {
 					}
 
-					@Override
 					public void onModifierFinished(
 							IModifier<IEntity> pModifier, IEntity pItem) {
 						
 						final IEntity item = pItem;
 						mParentActivity.runOnUpdateThread(new Runnable() {
-							@Override
 							public void run() {
 								tile.setBall(null);
 							}
