@@ -24,6 +24,11 @@ import org.anddev.andengine.opengl.font.FontManager;
 import org.anddev.andengine.opengl.texture.TextureOptions;
 import org.anddev.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas;
 import org.anddev.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlasTextureRegionFactory;
+import org.anddev.andengine.opengl.texture.atlas.bitmap.BuildableBitmapTextureAtlas;
+import org.anddev.andengine.opengl.texture.atlas.bitmap.source.IBitmapTextureAtlasSource;
+import org.anddev.andengine.opengl.texture.atlas.buildable.builder.BlackPawnTextureBuilder;
+import org.anddev.andengine.opengl.texture.atlas.buildable.builder.ITextureBuilder.TextureAtlasSourcePackingException;
+import org.anddev.andengine.opengl.texture.region.BaseTextureRegion;
 import org.anddev.andengine.opengl.texture.region.TextureRegion;
 import org.anddev.andengine.opengl.texture.region.TiledTextureRegion;
 import org.anddev.andengine.ui.activity.BaseGameActivity;
@@ -33,6 +38,7 @@ import org.anddev.andengine.entity.layer.tiled.tmx.TMXTiledMap;
 import org.anddev.andengine.entity.layer.tiled.tmx.TMXLoader;
 import org.anddev.andengine.entity.layer.tiled.tmx.TMXLayer;
 import org.anddev.andengine.entity.layer.tiled.tmx.util.exception.TMXLoadException;
+import org.anddev.andengine.extension.svg.opengl.texture.atlas.bitmap.SVGBitmapTextureAtlasTextureRegionFactory;
 
 import android.app.Dialog;
 import android.graphics.Color;
@@ -45,6 +51,7 @@ public class LineikiActivity extends BaseGameActivity {
 	static final int CAMERA_WIDTH = 320;
 	static final int CAMERA_HEIGHT = 480;
 	//private static final String TAG = "Lineiki";
+	private static final int COUNT = 0;
 	
 	private ZoomCamera mCamera;
 	private BitmapTextureAtlas mTexture;
@@ -58,6 +65,8 @@ public class LineikiActivity extends BaseGameActivity {
 	
 	
 	private GameLogic mGameLogic;
+	private BuildableBitmapTextureAtlas mBuildableBitmapTextureAtlas;
+	private TextureRegion mSVGTestTextureRegion;
 	
 	@Override
 	public FontManager getFontManager() {
@@ -108,20 +117,30 @@ public class LineikiActivity extends BaseGameActivity {
 		this.mFont = FontFactory.createFromAsset(this.mFontTexture, this, "LCD.ttf", 36, true, Color.YELLOW);
 		this.mEngine.getTextureManager().loadTexture(this.mFontTexture);
 		this.getFontManager().loadFont(this.mFont);
+		
+		
+		this.mBuildableBitmapTextureAtlas = new BuildableBitmapTextureAtlas(512, 512, TextureOptions.BILINEAR_PREMULTIPLYALPHA);
+		SVGBitmapTextureAtlasTextureRegionFactory.setAssetBasePath("gfx/");
+		this.mSVGTestTextureRegion = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(this.mBuildableBitmapTextureAtlas, this, "chick.svg", 64, 64);
+		
+		try {
+			this.mBuildableBitmapTextureAtlas.build(new BlackPawnTextureBuilder<IBitmapTextureAtlasSource, BitmapTextureAtlas>(1));
+		} catch (final TextureAtlasSourcePackingException e) {
+			Debug.e(e);
+		}
+
+		this.mEngine.getTextureManager().loadTexture(this.mBuildableBitmapTextureAtlas);
 	}
 
 	public Scene onLoadScene() {
 		this.mEngine.registerUpdateHandler(new FPSLogger());
 		final Scene scene = new Scene();
 		
-		scene.setBackground(new ColorBackground(0.09804f, 0.6274f, 0.8784f));
+		scene.setBackground(new ColorBackground(0.09804f, 0.6274f, 0.8785f));
 
 		final BallDispencer disp = new BallDispencer(this.mTextureRegion);
 		disp.setPosition(100,320);
 		scene.attachChild(disp);
-		
-		
-
 		
 		final PlayingField playingField = new PlayingField(this.mTextureRegion, this);
 		scene.attachChild(playingField);
@@ -138,6 +157,8 @@ public class LineikiActivity extends BaseGameActivity {
 		playingField.setEvent(mGameLogic);
 
 		mGameLogic.startGame();
+		
+		scene.attachChild(new Sprite(100, 100, 64, 64, this.mSVGTestTextureRegion));
 		
 		return scene;
 
