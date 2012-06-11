@@ -8,20 +8,20 @@ public class BallDispencer extends Entity {
 	final static int NUM_BALLS = 3;
 	
 	MapTile [] mField;
-	TiledTextureRegion mTextureRegion;
+	ITextureProvider mTextureProvider;
 
-	BallDispencer(TiledTextureRegion pTextureRegion) {
+	BallDispencer(ITextureProvider pTextureProvider) {
 		super();
 		
-		this.mTextureRegion = pTextureRegion;	
+		this.mTextureProvider = pTextureProvider;	
 		mField = new MapTile[NUM_BALLS]; 
 		initBackground();
 	}
 	
 	private void initBackground() {
 		for (int i = 0; i < NUM_BALLS; i++) {			
-			final MapTile tile = new MapTile(i, 0, this.mTextureRegion.deepCopy(), (i & 1) == 0);
-			final BallSprite ball = new BallSprite(0, 0, this.mTextureRegion.deepCopy(), BallColor.randomColor());
+			final MapTile tile = new MapTile(i, 0, mTextureProvider.getFieldBGTexture().deepCopy(), (i & 1) == 0);
+			final BallSprite ball = new BallSprite(0, 0, mTextureProvider.getBallTexture().deepCopy(), BallColor.randomColor());
 			tile.setBall(ball);
 			this.attachChild(tile);
 			mField[i] = tile;

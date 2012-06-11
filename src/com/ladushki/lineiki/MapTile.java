@@ -25,7 +25,7 @@ public class MapTile extends AnimatedSprite {
 		if (m_bEven) {
 			this.setCurrentTileIndex(0);
 		} else {
-			this.setCurrentTileIndex(10);			
+			this.setCurrentTileIndex(1);			
 		}
 	}
 	

@@ -13,13 +13,13 @@ import java.util.Random;
  *
  */
 public enum BallColor {
-	BLUE  (20),
-	GREEN (30),
-	RED   (40),
-	PURPLE(50),
-	CYAN  (60),
-	DARK_GREEN (70),
-	ORANGE (80);
+	BLUE  (0),
+	GREEN (1),
+	RED   (2),
+	PURPLE(3),
+	CYAN  (4),
+	DARK_GREEN (5),
+	ORANGE (6);
 	
 	private static final List<BallColor> VALUES =
 		    Collections.unmodifiableList(Arrays.asList(values()));

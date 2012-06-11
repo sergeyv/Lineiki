@@ -33,6 +33,7 @@ import org.anddev.andengine.entity.shape.RectangularShape;
 import org.anddev.andengine.entity.shape.Shape;
 import org.anddev.andengine.entity.sprite.AnimatedSprite;
 import org.anddev.andengine.entity.sprite.BaseSprite;
+import org.anddev.andengine.entity.sprite.Sprite;
 import org.anddev.andengine.entity.text.ChangeableText;
 import org.anddev.andengine.entity.text.Text;
 import org.anddev.andengine.input.touch.TouchEvent;
@@ -60,17 +61,17 @@ public class PlayingField extends Entity implements ITouchArea {
 
 	LineikiActivity mParentActivity;
 	
-	TiledTextureRegion mTextureRegion;
+	ITextureProvider mTextureProvider;
 	MapTile [][] mField;
 	
 	IGameEvent mEvent;
 	
 	
-	public PlayingField(TiledTextureRegion pTextureRegion, LineikiActivity pParentActivity) {
+	public PlayingField(ITextureProvider pTextureProvider, LineikiActivity pParentActivity) {
 		
 		mParentActivity = pParentActivity;
 		
-		this.mTextureRegion = pTextureRegion;	
+		this.mTextureProvider = pTextureProvider;	
 		mField = new MapTile[FIELD_WIDTH][FIELD_HEIGHT]; 
 		initBackground();
 	}
@@ -79,7 +80,7 @@ public class PlayingField extends Entity implements ITouchArea {
 		for (int j = 0; j < FIELD_HEIGHT; j++) {
 			for (int i = 0; i < FIELD_WIDTH; i++) {
 				
-				final MapTile tile = new MapTile(i, j, this.mTextureRegion.deepCopy(), (i+j & 1) == 0);
+				final MapTile tile = new MapTile(i, j, this.mTextureProvider.getFieldBGTexture().deepCopy(), (i+j & 1) == 0);
 				this.mField[i][j] = tile;				
 				this.attachChild(tile);
 			}
@@ -97,7 +98,7 @@ public class PlayingField extends Entity implements ITouchArea {
 	}*/
 
 	public BallSprite addBall(MapTile tile, BallColor pColor, int num) {
-		final BallSprite ball = new BallSprite(0, 0, this.mTextureRegion.deepCopy(), pColor);
+		final BallSprite ball = new BallSprite(0, 0, this.mTextureProvider.getBallTexture().deepCopy(), pColor);
 		tile.setBall(ball);
 		
 		ball.setScale(0.0f);
@@ -138,8 +139,7 @@ public class PlayingField extends Entity implements ITouchArea {
 	}
 	
 	private void createPathBreadcrumb(int x, int y, int num, int totalDots) {
-		AnimatedSprite dot = new AnimatedSprite(x, y, mTextureRegion);
-		dot.setCurrentTileIndex(90);
+		Sprite dot = new Sprite(x, y, mTextureProvider.getDotTexture());
 		
 		dot.setAlpha(0.0f);
 		dot.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);

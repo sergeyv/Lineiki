@@ -46,7 +46,7 @@ import android.graphics.Typeface;
 import android.util.Log;
 import android.widget.Toast;
 
-public class LineikiActivity extends BaseGameActivity {
+public class LineikiActivity extends BaseGameActivity implements ITextureProvider {
 
 	static final int CAMERA_WIDTH = 320;
 	static final int CAMERA_HEIGHT = 480;
@@ -54,8 +54,8 @@ public class LineikiActivity extends BaseGameActivity {
 	private static final int COUNT = 0;
 	
 	private ZoomCamera mCamera;
-	private BitmapTextureAtlas mTexture;
-	private TiledTextureRegion mTextureRegion;
+	/*private BitmapTextureAtlas mTexture;
+	private TiledTextureRegion mTextureRegion;*/
 	private SurfaceScrollDetector mScrollDetector;
 	private TMXTiledMap mTMXTiledMap;
 	private BitmapTextureAtlas mBgTexture;
@@ -66,7 +66,9 @@ public class LineikiActivity extends BaseGameActivity {
 	
 	private GameLogic mGameLogic;
 	private BuildableBitmapTextureAtlas mBuildableBitmapTextureAtlas;
-	private TextureRegion mSVGTestTextureRegion;
+	private TiledTextureRegion mBallTextureRegion;
+	private TiledTextureRegion mFieldBgTextureRegion;
+	private TextureRegion mDotTextureRegion;
 	
 	@Override
 	public FontManager getFontManager() {
@@ -107,29 +109,34 @@ public class LineikiActivity extends BaseGameActivity {
 	public void onLoadResources() {
 		BitmapTextureAtlasTextureRegionFactory.setAssetBasePath("gfx/");
 		
-  		this.mTexture = new BitmapTextureAtlas(512, 512, TextureOptions.DEFAULT);
-		this.mTextureRegion = BitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(this.mTexture, this, "lineiki.png", 0, 0, 10, 10);
-		this.mEngine.getTextureManager().loadTextures(this.mTexture);
+  		/*mTexture = new BitmapTextureAtlas(512, 512, TextureOptions.DEFAULT);
+		mTextureRegion = BitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(mTexture, this, "lineiki.png", 0, 0, 10, 10);
+		mEngine.getTextureManager().loadTextures(mTexture);*/
 		
-		this.mFontTexture = new BitmapTextureAtlas(256, 256, TextureOptions.BILINEAR_PREMULTIPLYALPHA);
+		mFontTexture = new BitmapTextureAtlas(256, 256, TextureOptions.BILINEAR_PREMULTIPLYALPHA);
 
 		FontFactory.setAssetBasePath("fonts/");
-		this.mFont = FontFactory.createFromAsset(this.mFontTexture, this, "LCD.ttf", 36, true, Color.YELLOW);
-		this.mEngine.getTextureManager().loadTexture(this.mFontTexture);
-		this.getFontManager().loadFont(this.mFont);
+		mFont = FontFactory.createFromAsset(mFontTexture, this, "LCD.ttf", 36, true, Color.YELLOW);
+		mEngine.getTextureManager().loadTexture(mFontTexture);
+		getFontManager().loadFont(mFont);
 		
 		
-		this.mBuildableBitmapTextureAtlas = new BuildableBitmapTextureAtlas(512, 512, TextureOptions.BILINEAR_PREMULTIPLYALPHA);
+		mBuildableBitmapTextureAtlas = new BuildableBitmapTextureAtlas(512, 512, TextureOptions.BILINEAR_PREMULTIPLYALPHA);//
 		SVGBitmapTextureAtlasTextureRegionFactory.setAssetBasePath("gfx/");
-		this.mSVGTestTextureRegion = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(this.mBuildableBitmapTextureAtlas, this, "chick.svg", 64, 64);
+				
+		int tile_size = 32;
+		
+		mBallTextureRegion	= SVGBitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(mBuildableBitmapTextureAtlas, this, "balls.svg", tile_size, tile_size*7, 1, 7);
+		mFieldBgTextureRegion = SVGBitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(mBuildableBitmapTextureAtlas, this, "field_bg.svg", tile_size, tile_size*2, 1, 2);
+		mDotTextureRegion = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "dot.svg", tile_size, tile_size);
 		
 		try {
-			this.mBuildableBitmapTextureAtlas.build(new BlackPawnTextureBuilder<IBitmapTextureAtlasSource, BitmapTextureAtlas>(1));
+			mBuildableBitmapTextureAtlas.build(new BlackPawnTextureBuilder<IBitmapTextureAtlasSource, BitmapTextureAtlas>(1));
 		} catch (final TextureAtlasSourcePackingException e) {
 			Debug.e(e);
 		}
 
-		this.mEngine.getTextureManager().loadTexture(this.mBuildableBitmapTextureAtlas);
+		mEngine.getTextureManager().loadTexture(mBuildableBitmapTextureAtlas);
 	}
 
 	public Scene onLoadScene() {
@@ -138,11 +145,11 @@ public class LineikiActivity extends BaseGameActivity {
 		
 		scene.setBackground(new ColorBackground(0.09804f, 0.6274f, 0.8785f));
 
-		final BallDispencer disp = new BallDispencer(this.mTextureRegion);
+		final BallDispencer disp = new BallDispencer(this);
 		disp.setPosition(100,320);
 		scene.attachChild(disp);
 		
-		final PlayingField playingField = new PlayingField(this.mTextureRegion, this);
+		final PlayingField playingField = new PlayingField(this, this);
 		scene.attachChild(playingField);
 		scene.registerTouchArea(playingField);	
 		scene.setTouchAreaBindingEnabled(true);
@@ -158,7 +165,6 @@ public class LineikiActivity extends BaseGameActivity {
 
 		mGameLogic.startGame();
 		
-		scene.attachChild(new Sprite(100, 100, 64, 64, this.mSVGTestTextureRegion));
 		
 		return scene;
 
@@ -206,6 +212,18 @@ public class LineikiActivity extends BaseGameActivity {
 	}
 
 	
+	public TiledTextureRegion getBallTexture() {
+		return mBallTextureRegion;
+	}
+	
+	public TiledTextureRegion getFieldBGTexture() {
+		return this.mFieldBgTextureRegion;
+	}
+
+	public TextureRegion getDotTexture() {
+		return mDotTextureRegion;
+	}
+
 	protected Dialog onCreateDialog(int id) {
 	    Dialog dialog;
 	    switch(id) {
