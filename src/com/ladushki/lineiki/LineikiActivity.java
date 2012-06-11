@@ -124,7 +124,7 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 		mBuildableBitmapTextureAtlas = new BuildableBitmapTextureAtlas(512, 512, TextureOptions.BILINEAR_PREMULTIPLYALPHA);//
 		SVGBitmapTextureAtlasTextureRegionFactory.setAssetBasePath("gfx/");
 				
-		int tile_size = 32;
+		int tile_size = 35;
 		
 		mBallTextureRegion	= SVGBitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(mBuildableBitmapTextureAtlas, this, "balls.svg", tile_size, tile_size*7, 1, 7);
 		mFieldBgTextureRegion = SVGBitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(mBuildableBitmapTextureAtlas, this, "field_bg.svg", tile_size, tile_size*2, 1, 2);
