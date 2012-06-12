@@ -1,5 +1,7 @@
 package com.ladushki.lineiki;
 
+import javax.microedition.khronos.opengles.GL10;
+
 import org.anddev.andengine.engine.Engine;
 import org.anddev.andengine.engine.camera.ZoomCamera;
 import org.anddev.andengine.engine.options.EngineOptions;
@@ -9,6 +11,10 @@ import org.anddev.andengine.entity.scene.Scene;
 import org.anddev.andengine.entity.scene.Scene.IOnSceneTouchListener;
 import org.anddev.andengine.entity.scene.background.ColorBackground;
 import org.anddev.andengine.entity.scene.background.SpriteBackground;
+import org.anddev.andengine.entity.scene.menu.MenuScene;
+import org.anddev.andengine.entity.scene.menu.MenuScene.IOnMenuItemClickListener;
+import org.anddev.andengine.entity.scene.menu.item.IMenuItem;
+import org.anddev.andengine.entity.scene.menu.item.SpriteMenuItem;
 import org.anddev.andengine.entity.sprite.AnimatedSprite;
 import org.anddev.andengine.entity.sprite.Sprite;
 import org.anddev.andengine.entity.text.ChangeableText;
@@ -44,13 +50,18 @@ import android.app.Dialog;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.widget.Toast;
 
-public class LineikiActivity extends BaseGameActivity implements ITextureProvider {
+public class LineikiActivity extends BaseGameActivity implements ITextureProvider, IOnMenuItemClickListener  {
 
 	static final int CAMERA_WIDTH = 320;
 	static final int CAMERA_HEIGHT = 480;
-	//private static final String TAG = "Lineiki";
+	
+	protected static final int MENU_RESET = 0;
+	protected static final int MENU_UNDO = 1;
+	protected static final int MENU_QUIT = 2;
+
 	private static final int COUNT = 0;
 	
 	private ZoomCamera mCamera;
@@ -69,6 +80,11 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 	private TiledTextureRegion mBallTextureRegion;
 	private TiledTextureRegion mFieldBgTextureRegion;
 	private TextureRegion mDotTextureRegion;
+	private TextureRegion mMenuNewGame;
+	private TextureRegion mMenuUndo;
+	private TextureRegion mMenuQuit;
+	private Scene mMainScene;
+	private MenuScene mMenuScene;
 	
 	@Override
 	public FontManager getFontManager() {
@@ -121,7 +137,7 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 		getFontManager().loadFont(mFont);
 		
 		
-		mBuildableBitmapTextureAtlas = new BuildableBitmapTextureAtlas(512, 512, TextureOptions.BILINEAR_PREMULTIPLYALPHA);//
+		mBuildableBitmapTextureAtlas = new BuildableBitmapTextureAtlas(1024, 1024, TextureOptions.BILINEAR_PREMULTIPLYALPHA);//
 		SVGBitmapTextureAtlasTextureRegionFactory.setAssetBasePath("gfx/");
 				
 		int tile_size = 35;
@@ -129,6 +145,11 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 		mBallTextureRegion	= SVGBitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(mBuildableBitmapTextureAtlas, this, "balls.svg", tile_size, tile_size*7, 1, 7);
 		mFieldBgTextureRegion = SVGBitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(mBuildableBitmapTextureAtlas, this, "field_bg.svg", tile_size, tile_size*2, 1, 2);
 		mDotTextureRegion = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "dot.svg", tile_size, tile_size);
+		
+		mMenuNewGame = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "menu_new_game.svg", 200, 50);
+		mMenuUndo = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "menu_undo.svg", 200, 50);
+		mMenuQuit = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "menu_quit.svg", 200, 50);
+
 		
 		try {
 			mBuildableBitmapTextureAtlas.build(new BlackPawnTextureBuilder<IBitmapTextureAtlasSource, BitmapTextureAtlas>(1));
@@ -141,21 +162,25 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 
 	public Scene onLoadScene() {
 		this.mEngine.registerUpdateHandler(new FPSLogger());
-		final Scene scene = new Scene();
 		
-		scene.setBackground(new ColorBackground(0.09804f, 0.6274f, 0.8785f));
+		this.createMenuScene();
+
+		
+		this.mMainScene = new Scene();
+		
+		mMainScene.setBackground(new ColorBackground(0.09804f, 0.6274f, 0.8785f));
 
 		final BallDispencer disp = new BallDispencer(this);
 		disp.setPosition(100,320);
-		scene.attachChild(disp);
+		mMainScene.attachChild(disp);
 		
 		final PlayingField playingField = new PlayingField(this, this);
-		scene.attachChild(playingField);
-		scene.registerTouchArea(playingField);	
-		scene.setTouchAreaBindingEnabled(true);
+		mMainScene.attachChild(playingField);
+		mMainScene.registerTouchArea(playingField);	
+		mMainScene.setTouchAreaBindingEnabled(true);
 			
 		final ChangeableText scoreField = new ChangeableText(100, 400, this.mFont, "000", HorizontalAlign.CENTER, "000".length());
-		scene.attachChild(scoreField);
+		mMainScene.attachChild(scoreField);
 
 		
 		mGameLogic = new GameLogic(playingField, disp);
@@ -166,49 +191,7 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 		mGameLogic.startGame();
 		
 		
-		return scene;
-
-		
-		/*
-		final Sprite bg_sprite = new Sprite(0, 0, this.mBgTextureRegion);
-		final SpriteBackground bg = new SpriteBackground(bg_sprite);
-
-		scene.setBackground(bg);
-
-	    //try {
-        final TMXLoader tmxLoader = new TMXLoader(this, this.mEngine.getTextureManager(), TextureOptions.NEAREST);
-        try {
-			this.mTMXTiledMap = tmxLoader.loadFromAsset(this, "field.tmx");
-		} catch (TMXLoadException e) {
-		    Debug.e(e);
-		}
-        final TMXLayer tmxLayer = this.mTMXTiledMap.getTMXLayers().get(0);
-        scene.attachChild(tmxLayer);*/
-
-
-		/// touch and scroll setup
-		/*scene.setOnAreaTouchTraversalFrontToBack();
-		scene.setOnSceneTouchListener(this);
-		scene.setTouchAreaBindingEnabled(true);
-		this.mScrollDetector = new SurfaceScrollDetector(this);
-		this.mScrollDetector.setEnabled(true);*/
-
-
-		//final int centerX = (CAMERA_WIDTH - this.mTextureRegion.getWidth()) / 2;
-		//final int centerY = (CAMERA_HEIGHT - this.mTextureRegion.getHeight()) / 2;
-
-		/*final Sprite ball = new TiledSprite(10, 10, this.mTextureRegion);
-		scene.attachChild(ball);*/
-
-		
-		/*final BallSprite b2 = new BallSprite(4, 5, this.mTextureRegion.deepCopy(), BallColor.BLUE);
-		scene.attachChild(b2);
-		scene.registerTouchArea(b2);*/
-		
-		//disp.setScale((float) 0.5);
-		//disp.setRotation(30);
-		//disp.setAlpha(50);
-		
+		return mMainScene;
 	}
 
 	
@@ -254,6 +237,65 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 		// TODO Auto-generated method stub
 		
 	}
+
+	/* *** MENU STUFF *** */
+	@Override
+	public boolean onKeyDown(final int pKeyCode, final KeyEvent pEvent) {
+		if(pKeyCode == KeyEvent.KEYCODE_MENU && pEvent.getAction() == KeyEvent.ACTION_DOWN) {
+			if(this.mMainScene.hasChildScene()) {
+				/* Remove the menu and reset it. */
+				this.mMenuScene.back();
+			} else {
+				/* Attach the menu. */
+				this.mMainScene.setChildScene(this.mMenuScene, false, true, true);
+			}
+			return true;
+		} else {
+			return super.onKeyDown(pKeyCode, pEvent);
+		}
+	}
+
+	protected void createMenuScene() {
+		this.mMenuScene = new MenuScene(this.mCamera);
+
+		final SpriteMenuItem resetMenuItem = new SpriteMenuItem(MENU_RESET, this.mMenuNewGame);
+		resetMenuItem.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
+		this.mMenuScene.addMenuItem(resetMenuItem);
+
+		final SpriteMenuItem undoMenuItem = new SpriteMenuItem(MENU_UNDO, this.mMenuUndo);
+		undoMenuItem.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
+		this.mMenuScene.addMenuItem(undoMenuItem);
+
+		final SpriteMenuItem quitMenuItem = new SpriteMenuItem(MENU_QUIT, this.mMenuQuit);
+		quitMenuItem.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
+		this.mMenuScene.addMenuItem(quitMenuItem);
+
+		this.mMenuScene.buildAnimations();
+
+		this.mMenuScene.setBackgroundEnabled(false);
+
+		this.mMenuScene.setOnMenuItemClickListener(this);
+	}
+
+	public boolean onMenuItemClicked(final MenuScene pMenuScene, final IMenuItem pMenuItem, final float pMenuItemLocalX, final float pMenuItemLocalY) {
+		switch(pMenuItem.getID()) {
+			case MENU_RESET:
+				// Restart the animation. 
+				this.mMainScene.reset();
+
+				// Remove the menu and reset it.
+				this.mMainScene.clearChildScene();
+				this.mMenuScene.reset();
+				return true;
+			case MENU_QUIT:
+				// End Activity.
+				this.finish();
+				return true;
+			default:
+				return false;
+		}
+	}
+
 
 	/*@Override
 	public boolean onSceneTouchEvent(Scene pScene, TouchEvent pSceneTouchEvent) {
