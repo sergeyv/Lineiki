@@ -55,9 +55,6 @@ public class PlayingField extends Entity implements ITouchArea {
 	
 	final int FIELD_WIDTH = 9;
 	final int FIELD_HEIGHT = 9;
-	
-	final int TILE_WIDTH = 35;
-	final int TILE_HEIGHT = 35;
 
 	LineikiActivity mParentActivity;
 	
@@ -66,36 +63,27 @@ public class PlayingField extends Entity implements ITouchArea {
 	
 	IGameEvent mEvent;
 	
-	
 	public PlayingField(ITextureProvider pTextureProvider, LineikiActivity pParentActivity) {
 		
-		mParentActivity = pParentActivity;
-		
+		mParentActivity = pParentActivity;		
 		this.mTextureProvider = pTextureProvider;	
 		mField = new MapTile[FIELD_WIDTH][FIELD_HEIGHT]; 
 		initBackground();
 	}
 
 	private void initBackground() {
+		int tile_size = mTextureProvider.getTileSize();
+
 		for (int j = 0; j < FIELD_HEIGHT; j++) {
 			for (int i = 0; i < FIELD_WIDTH; i++) {
 				
-				final MapTile tile = new MapTile(i, j, this.mTextureProvider.getFieldBGTexture().deepCopy(), (i+j & 1) == 0);
+				final MapTile tile = new MapTile(i*tile_size, j*tile_size, this.mTextureProvider.getFieldBGTexture().deepCopy(), (i+j & 1) == 0);
 				this.mField[i][j] = tile;				
 				this.attachChild(tile);
 			}
 		}
 
 	}
-	
-	/*public BallSprite addBall(int pX, int pY, BallColor pColor, int num) {
-		final BallSprite ball = new BallSprite(0, 0, this.mTextureRegion.deepCopy(), pColor);
-		this.getTileAt(pX, pY).setBall(ball);
-		
-		
-		return ball;
-
-	}*/
 
 	public BallSprite addBall(MapTile tile, BallColor pColor, int num) {
 		final BallSprite ball = new BallSprite(0, 0, this.mTextureProvider.getBallTexture().deepCopy(), pColor);
@@ -110,7 +98,6 @@ public class PlayingField extends Entity implements ITouchArea {
 				));
 
 		return ball;
-
 	}
 
 	public MapTile getTileAt(int pX, int pY) {
@@ -118,16 +105,18 @@ public class PlayingField extends Entity implements ITouchArea {
 	}
 
 	public boolean contains(float pX, float pY) {
-		if (pX < FIELD_WIDTH * TILE_WIDTH && pY < FIELD_HEIGHT*TILE_HEIGHT) {
+		int tile_size = mTextureProvider.getTileSize();
+		if (pX < FIELD_WIDTH * tile_size && pY < FIELD_HEIGHT*tile_size) {
 			return true;
 		}
 		return false;
 	}
 
 	public boolean onAreaTouched(final TouchEvent pSceneTouchEvent, final float pTouchAreaLocalX, final float pTouchAreaLocalY) {
+		int tile_size = mTextureProvider.getTileSize();
 		if (pSceneTouchEvent.getAction() == TouchEvent.ACTION_DOWN) {
-			final int x = (int) pSceneTouchEvent.getX() / TILE_WIDTH;
-			final int y = (int) pSceneTouchEvent.getY() / TILE_HEIGHT;
+			final int x = (int) pSceneTouchEvent.getX() / tile_size;
+			final int y = (int) pSceneTouchEvent.getY() / tile_size;
 			mEvent.onTileTouched(x,y);
 			return true;
 		}
@@ -177,23 +166,18 @@ public class PlayingField extends Entity implements ITouchArea {
 	public void animateMovingBall(Point pSource, Point pDest, Point [] pPath) {
 		Point srcPt = pSource;
 		Point destPt = pDest;
-		
-		/*for (int j = 0; j < FIELD_HEIGHT; j++) {
-			for (int i = 0; i < FIELD_WIDTH; i++) {
-				final MapTile tile = getTileAt(i,j);
-				tile.stopBlinking();
-			}
-		}*/		
 		int dotNum = 0;
+
+		int tile_size = mTextureProvider.getTileSize();
 		
 		for (int i = pPath.length - 1; i >= 0; i--) {
 			Point p = pPath[i];
-			createPathBreadcrumb(p.x*35, p.y*35, dotNum++, pPath.length*2);
+			createPathBreadcrumb(p.x*tile_size, p.y*tile_size, dotNum++, pPath.length*2);
 			
 			if (i > 0) {
 				Point next = pPath[i-1];
-				p.x = (p.x*35 + next.x*35)/2;
-				p.y = (p.y*35 + next.y*35)/2;
+				p.x = (p.x*tile_size + next.x*tile_size)/2;
+				p.y = (p.y*tile_size + next.y*tile_size)/2;
 				createPathBreadcrumb(p.x, p.y, dotNum++, pPath.length*2);
 			}
 		}

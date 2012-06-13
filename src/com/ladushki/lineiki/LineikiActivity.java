@@ -49,14 +49,15 @@ import org.anddev.andengine.extension.svg.opengl.texture.atlas.bitmap.SVGBitmapT
 import android.app.Dialog;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.Toast;
 
 public class LineikiActivity extends BaseGameActivity implements ITextureProvider, IOnMenuItemClickListener  {
 
-	static final int CAMERA_WIDTH = 320;
-	static final int CAMERA_HEIGHT = 480;
+	/*static final int CAMERA_WIDTH = 320;
+	static final int CAMERA_HEIGHT = 480;*/
 	
 	protected static final int MENU_RESET = 0;
 	protected static final int MENU_UNDO = 1;
@@ -85,6 +86,8 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 	private TextureRegion mMenuQuit;
 	private Scene mMainScene;
 	private MenuScene mMenuScene;
+	private int mCameraWidth;
+	private int mCameraHeight;
 	
 	@Override
 	public FontManager getFontManager() {
@@ -99,19 +102,23 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 		Toast.makeText(this, "Load Complete!", Toast.LENGTH_LONG).show();
 	}*/
 
-	public Engine onLoadEngine() {
-		this.mCamera = new ZoomCamera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
-
-		
-		final int maxVBound = CAMERA_HEIGHT*2;
+	public Engine onLoadEngine() {		
+		/*final int maxVBound = CAMERA_HEIGHT*2;
 		final int maxHBound = CAMERA_HEIGHT*2;
 		this.mCamera.setBounds(-maxHBound, maxHBound, -maxVBound, maxVBound);
-		this.mCamera.setBoundsEnabled(true);
+		this.mCamera.setBoundsEnabled(true);*/
+		
+		final DisplayMetrics displayMetrics = new DisplayMetrics();
+        this.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        this.mCameraWidth = displayMetrics.widthPixels;
+        this.mCameraHeight= displayMetrics.heightPixels;
+
+		this.mCamera = new ZoomCamera(0, 0, mCameraWidth, mCameraHeight);
 
 
 		final EngineOptions engineOptions = new EngineOptions(true,
 				ScreenOrientation.PORTRAIT, new RatioResolutionPolicy(
-						CAMERA_WIDTH, CAMERA_HEIGHT), this.mCamera);
+						mCameraWidth, mCameraHeight), this.mCamera);
 
 			engineOptions.setNeedsSound(true);
 			engineOptions.setNeedsMusic(true);
@@ -140,7 +147,7 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 		mBuildableBitmapTextureAtlas = new BuildableBitmapTextureAtlas(1024, 1024, TextureOptions.BILINEAR_PREMULTIPLYALPHA);//
 		SVGBitmapTextureAtlasTextureRegionFactory.setAssetBasePath("gfx/");
 				
-		int tile_size = 35;
+		int tile_size = this.getTileSize();
 		
 		mBallTextureRegion	= SVGBitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(mBuildableBitmapTextureAtlas, this, "balls.svg", tile_size, tile_size*7, 1, 7);
 		mFieldBgTextureRegion = SVGBitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(mBuildableBitmapTextureAtlas, this, "field_bg.svg", tile_size, tile_size*2, 1, 2);
@@ -294,6 +301,12 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 			default:
 				return false;
 		}
+	}
+
+
+	public int getTileSize() {
+		/* Returns the size of a single playing field cell in pixels */
+		return this.mCameraWidth/9;
 	}
 
 

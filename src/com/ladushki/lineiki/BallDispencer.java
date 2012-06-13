@@ -19,8 +19,10 @@ public class BallDispencer extends Entity {
 	}
 	
 	private void initBackground() {
+		int tile_size = mTextureProvider.getTileSize();
+
 		for (int i = 0; i < NUM_BALLS; i++) {			
-			final MapTile tile = new MapTile(i, 0, mTextureProvider.getFieldBGTexture().deepCopy(), (i & 1) == 0);
+			final MapTile tile = new MapTile(i*tile_size, 0, mTextureProvider.getFieldBGTexture().deepCopy(), (i & 1) == 0);
 			final BallSprite ball = new BallSprite(0, 0, mTextureProvider.getBallTexture().deepCopy(), BallColor.randomColor());
 			tile.setBall(ball);
 			this.attachChild(tile);

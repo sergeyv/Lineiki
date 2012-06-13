@@ -19,7 +19,7 @@ public class MapTile extends AnimatedSprite {
 	private BallSprite m_ball;
 
 	public MapTile(int pX, int pY, TiledTextureRegion pTiledTextureRegion, boolean pEven) {
-		super(pX*35, pY*35, pTiledTextureRegion);
+		super(pX, pY, pTiledTextureRegion);
 		m_bEven = pEven;
 		
 		if (m_bEven) {
