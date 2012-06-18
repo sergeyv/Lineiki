@@ -106,6 +106,8 @@ public class PlayingField extends Entity implements ITouchArea {
 
 	public boolean contains(float pX, float pY) {
 		int tile_size = mTextureProvider.getTileSize();
+		pX -= this.getX();
+		pY -= this.getY();
 		if (pX < FIELD_WIDTH * tile_size && pY < FIELD_HEIGHT*tile_size) {
 			return true;
 		}
@@ -115,8 +117,8 @@ public class PlayingField extends Entity implements ITouchArea {
 	public boolean onAreaTouched(final TouchEvent pSceneTouchEvent, final float pTouchAreaLocalX, final float pTouchAreaLocalY) {
 		int tile_size = mTextureProvider.getTileSize();
 		if (pSceneTouchEvent.getAction() == TouchEvent.ACTION_DOWN) {
-			final int x = (int) pSceneTouchEvent.getX() / tile_size;
-			final int y = (int) pSceneTouchEvent.getY() / tile_size;
+			final int x = (int) ((pSceneTouchEvent.getX() - this.getX()) / tile_size);
+			final int y = (int) ((pSceneTouchEvent.getY() - this.getY())  / tile_size);
 			mEvent.onTileTouched(x,y);
 			return true;
 		}

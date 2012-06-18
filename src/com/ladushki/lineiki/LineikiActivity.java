@@ -4,6 +4,7 @@ import javax.microedition.khronos.opengles.GL10;
 
 import org.anddev.andengine.engine.Engine;
 import org.anddev.andengine.engine.camera.ZoomCamera;
+import org.anddev.andengine.engine.camera.hud.HUD;
 import org.anddev.andengine.engine.options.EngineOptions;
 import org.anddev.andengine.engine.options.EngineOptions.ScreenOrientation;
 import org.anddev.andengine.engine.options.resolutionpolicy.RatioResolutionPolicy;
@@ -86,8 +87,13 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 	private TextureRegion mMenuQuit;
 	private Scene mMainScene;
 	private MenuScene mMenuScene;
-	private int mCameraWidth;
-	private int mCameraHeight;
+	private HUD mHUD;
+	
+	private int mScreenWidth;
+	private int mScreenHeight;
+	private int mLeftBorder;
+	private TextureRegion mScoreFieldBackground;
+	private TiledTextureRegion mScoreDigits;
 	
 	@Override
 	public FontManager getFontManager() {
@@ -110,15 +116,16 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 		
 		final DisplayMetrics displayMetrics = new DisplayMetrics();
         this.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        this.mCameraWidth = displayMetrics.widthPixels;
-        this.mCameraHeight= displayMetrics.heightPixels;
+        this.mScreenWidth = displayMetrics.widthPixels;
+        this.mScreenHeight = displayMetrics.heightPixels;
+        this.mLeftBorder = mScreenWidth % 9 / 2;
 
-		this.mCamera = new ZoomCamera(0, 0, mCameraWidth, mCameraHeight);
+		this.mCamera = new ZoomCamera(0, 0, mScreenWidth, mScreenHeight);
 
 
 		final EngineOptions engineOptions = new EngineOptions(true,
 				ScreenOrientation.PORTRAIT, new RatioResolutionPolicy(
-						mCameraWidth, mCameraHeight), this.mCamera);
+						mScreenWidth, mScreenHeight), this.mCamera);
 
 			engineOptions.setNeedsSound(true);
 			engineOptions.setNeedsMusic(true);
@@ -157,6 +164,8 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 		mMenuUndo = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "menu_undo.svg", 200, 50);
 		mMenuQuit = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "menu_quit.svg", 200, 50);
 
+		mScoreFieldBackground = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "score_bg.svg", tile_size, tile_size);
+		mScoreDigits = SVGBitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(mBuildableBitmapTextureAtlas, this, "digits.svg", tile_size, tile_size, 10, 1);
 		
 		try {
 			mBuildableBitmapTextureAtlas.build(new BlackPawnTextureBuilder<IBitmapTextureAtlasSource, BitmapTextureAtlas>(1));
@@ -170,25 +179,35 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 	public Scene onLoadScene() {
 		this.mEngine.registerUpdateHandler(new FPSLogger());
 		
+		/// menu
 		this.createMenuScene();
 
-		
-		this.mMainScene = new Scene();
-		
-		mMainScene.setBackground(new ColorBackground(0.09804f, 0.6274f, 0.8785f));
+		// HUD
+		this.mHUD = new HUD();
+		mCamera.setHUD(this.mHUD);
 
 		final BallDispencer disp = new BallDispencer(this);
-		disp.setPosition(100,320);
-		mMainScene.attachChild(disp);
+		disp.setPosition(mLeftBorder + getTileSize()*3, getTileSize()*0.2f);
+		mHUD.attachChild(disp);
+		
+		final ChangeableText scoreField = new ChangeableText(mLeftBorder + getTileSize()*6, getTileSize()*0.4f, this.mFont, "000", HorizontalAlign.CENTER, "000".length());
+		mHUD.attachChild(scoreField);
+		
+		final ScoreField score = new ScoreField(this, this, 3);
+		mHUD.attachChild(score);
+		
+
+		/// main scene
+		this.mMainScene = new Scene();
+		
+		
+		mMainScene.setBackground(new ColorBackground(0.09804f, 0.6274f, 0.8785f));
 		
 		final PlayingField playingField = new PlayingField(this, this);
+		playingField.setPosition(mLeftBorder, getTileSize()*1.4f);
 		mMainScene.attachChild(playingField);
 		mMainScene.registerTouchArea(playingField);	
 		mMainScene.setTouchAreaBindingEnabled(true);
-			
-		final ChangeableText scoreField = new ChangeableText(100, 400, this.mFont, "000", HorizontalAlign.CENTER, "000".length());
-		mMainScene.attachChild(scoreField);
-
 		
 		mGameLogic = new GameLogic(playingField, disp);
 		mGameLogic.setScoreField(scoreField);
@@ -306,7 +325,17 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 
 	public int getTileSize() {
 		/* Returns the size of a single playing field cell in pixels */
-		return this.mCameraWidth/9;
+		return this.mScreenWidth/9;
+	}
+
+
+	public TextureRegion getScoreBGTexture() {
+		return mScoreFieldBackground;
+	}
+
+
+	public TiledTextureRegion getDigitsTexture() {
+		return mScoreDigits;
 	}
 
 

@@ -8,6 +8,10 @@ public interface ITextureProvider {
 	public TiledTextureRegion getFieldBGTexture();
 	public TextureRegion getDotTexture();
 	
-	public int getTileSize();
+	public TextureRegion getScoreBGTexture();
+	
+	public TiledTextureRegion getDigitsTexture();
+	
+	public	 int getTileSize();
 
 }
