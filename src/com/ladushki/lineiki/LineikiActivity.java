@@ -165,7 +165,7 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 		mMenuQuit = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "menu_quit.svg", 200, 50);
 
 		mScoreFieldBackground = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "score_bg.svg", tile_size, tile_size);
-		mScoreDigits = SVGBitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(mBuildableBitmapTextureAtlas, this, "digits.svg", tile_size, tile_size, 10, 1);
+		mScoreDigits = SVGBitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(mBuildableBitmapTextureAtlas, this, "digits.svg", tile_size*10, tile_size, 10, 1);
 		
 		try {
 			mBuildableBitmapTextureAtlas.build(new BlackPawnTextureBuilder<IBitmapTextureAtlasSource, BitmapTextureAtlas>(1));
@@ -193,7 +193,7 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 		final ChangeableText scoreField = new ChangeableText(mLeftBorder + getTileSize()*6, getTileSize()*0.4f, this.mFont, "000", HorizontalAlign.CENTER, "000".length());
 		mHUD.attachChild(scoreField);
 		
-		final ScoreField score = new ScoreField(this, this, 3);
+		final ScoreDisplay score = new ScoreDisplay(this, this, 3);
 		mHUD.attachChild(score);
 		
 
@@ -210,7 +210,7 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 		mMainScene.setTouchAreaBindingEnabled(true);
 		
 		mGameLogic = new GameLogic(playingField, disp);
-		mGameLogic.setScoreField(scoreField);
+		mGameLogic.setScoreDisplay(score);
 		
 		playingField.setEvent(mGameLogic);
 

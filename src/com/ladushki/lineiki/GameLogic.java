@@ -22,7 +22,7 @@ public class GameLogic implements IGameEvent {
 	PlayingField mPlayingField;
 	private static final Random RANDOM = new Random();
 
-	private ChangeableText mScoreField;
+	private ScoreDisplay mScoreDisplay;
 	private int mScore;
 
 	
@@ -185,15 +185,15 @@ public class GameLogic implements IGameEvent {
 	}
 
 	
-	public void setScoreField(ChangeableText pField) {
-		this.mScoreField = pField;
-		this.mScoreField.setText("!!!");
+	public void setScoreDisplay(ScoreDisplay pScore) {
+		this.mScoreDisplay = pScore;
+		this.mScoreDisplay.setScore(0);
 		
 	}
 	
 	public void setScore(int pScore) {
 		this.mScore = pScore;
-		this.mScoreField.setText(Integer.toString(mScore));
+		this.mScoreDisplay.setScore(this.mScore);
 	}
 	
 	public void addScore(int pScore) {
