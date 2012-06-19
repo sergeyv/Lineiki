@@ -64,6 +64,7 @@ public class PlayingField extends Entity implements ITouchArea {
 	Sprite mSelectedSourceMarker;
 	
 	IGameEvent mEvent;
+	private Sprite mSelectedDestMarker;
 	
 	public PlayingField(ITextureProvider pTextureProvider, LineikiActivity pParentActivity) {
 		
@@ -73,6 +74,16 @@ public class PlayingField extends Entity implements ITouchArea {
 
 		initBackground();
 		initBallMarker();
+		initSquareMarker();
+	}
+
+	private void initSquareMarker() {
+		mSelectedDestMarker = new Sprite(0, 0, mTextureProvider.getSquareMarkerTexture());
+		this.attachChild(mSelectedDestMarker);
+		//mSelectedDestMarker.setVisible(false);
+		mSelectedDestMarker.setAlpha(0.0f);
+		mSelectedDestMarker.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
+
 	}
 
 	private void initBackground() {
@@ -316,4 +327,15 @@ public class PlayingField extends Entity implements ITouchArea {
 	public void unselectSource() {
 		mSelectedSourceMarker.setVisible(false);
 	}
+	
+	public void indicateDestSelected(int x, int y) {
+		mSelectedDestMarker.setVisible(true);
+		mSelectedDestMarker.setPosition(x*mTextureProvider.getTileSize(), y*mTextureProvider.getTileSize());
+		mSelectedDestMarker.registerEntityModifier(new ParallelEntityModifier(
+				new ScaleModifier(2.0f, 1, 3),
+				new AlphaModifier(2.0f, 1.0f, 0.0f)
+				));
+		
+	}
+
 }

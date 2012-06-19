@@ -75,6 +75,7 @@ public class GameLogic implements IGameEvent {
 			return false;
 		}
 		
+		mPlayingField.indicateDestSelected(pDest.x, pDest.y);
 		mPlayingField.animateMovingBall(pSource, pDest, path);
 		
 		return true;

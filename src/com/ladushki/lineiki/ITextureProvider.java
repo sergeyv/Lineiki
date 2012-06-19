@@ -8,6 +8,7 @@ public interface ITextureProvider {
 	public TiledTextureRegion getFieldBGTexture();
 	public TextureRegion getDotTexture();
 	public TextureRegion getBallMarkerTexture();
+	public TextureRegion getSquareMarkerTexture();
 	
 	public TextureRegion getScoreBGTexture();
 	

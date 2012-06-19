@@ -91,6 +91,7 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 	private TextureRegion mScoreFieldBackground;
 	private TiledTextureRegion mScoreDigits;
 	private TextureRegion mBallMarkerRegion;
+	private TextureRegion mSquareMarkerRegion;
 	
 	@Override
 	public FontManager getFontManager() {
@@ -157,6 +158,7 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 		mFieldBgTextureRegion = SVGBitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(mBuildableBitmapTextureAtlas, this, "field_bg.svg", tile_size, tile_size*2, 1, 2);
 		mDotTextureRegion = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "dot.svg", tile_size, tile_size);
 		mBallMarkerRegion = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "selected_ball.svg", tile_size, tile_size);
+		mSquareMarkerRegion = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "selected_square.svg", tile_size, tile_size);
 		
 		mMenuNewGame = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "menu_new_game.svg", 200, 50);
 		mMenuUndo = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "menu_undo.svg", 200, 50);
@@ -336,6 +338,9 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 		return mBallMarkerRegion;
 	}
 
+	public TextureRegion getSquareMarkerTexture() {
+		return mSquareMarkerRegion;
+	}
 
 	/*@Override
 	public boolean onSceneTouchEvent(Scene pScene, TouchEvent pSceneTouchEvent) {
