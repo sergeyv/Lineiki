@@ -69,10 +69,6 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 	private ZoomCamera mCamera;
 	/*private BitmapTextureAtlas mTexture;
 	private TiledTextureRegion mTextureRegion;*/
-	private SurfaceScrollDetector mScrollDetector;
-	private TMXTiledMap mTMXTiledMap;
-	private BitmapTextureAtlas mBgTexture;
-	private TextureRegion mBgTextureRegion;
 	private BitmapTextureAtlas mFontTexture;
 	private Font mFont;
 	
@@ -94,6 +90,7 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 	private int mLeftBorder;
 	private TextureRegion mScoreFieldBackground;
 	private TiledTextureRegion mScoreDigits;
+	private TextureRegion mBallMarkerRegion;
 	
 	@Override
 	public FontManager getFontManager() {
@@ -159,6 +156,7 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 		mBallTextureRegion	= SVGBitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(mBuildableBitmapTextureAtlas, this, "balls.svg", tile_size, tile_size*7, 1, 7);
 		mFieldBgTextureRegion = SVGBitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(mBuildableBitmapTextureAtlas, this, "field_bg.svg", tile_size, tile_size*2, 1, 2);
 		mDotTextureRegion = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "dot.svg", tile_size, tile_size);
+		mBallMarkerRegion = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "selected_ball.svg", tile_size, tile_size);
 		
 		mMenuNewGame = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "menu_new_game.svg", 200, 50);
 		mMenuUndo = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "menu_undo.svg", 200, 50);
@@ -189,18 +187,14 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 		final BallDispencer disp = new BallDispencer(this);
 		disp.setPosition(mLeftBorder + getTileSize()*3, getTileSize()*0.2f);
 		mHUD.attachChild(disp);
-		
-		final ChangeableText scoreField = new ChangeableText(mLeftBorder + getTileSize()*6, getTileSize()*0.4f, this.mFont, "000", HorizontalAlign.CENTER, "000".length());
-		mHUD.attachChild(scoreField);
-		
+				
 		final ScoreDisplay score = new ScoreDisplay(this, this, 3);
+		score.setPosition(getTileSize()*3, getTileSize()*11);
 		mHUD.attachChild(score);
 		
-
 		/// main scene
 		this.mMainScene = new Scene();
-		
-		
+				
 		mMainScene.setBackground(new ColorBackground(0.09804f, 0.6274f, 0.8785f));
 		
 		final PlayingField playingField = new PlayingField(this, this);
@@ -215,8 +209,7 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 		playingField.setEvent(mGameLogic);
 
 		mGameLogic.startGame();
-		
-		
+			
 		return mMainScene;
 	}
 
@@ -336,6 +329,11 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 
 	public TiledTextureRegion getDigitsTexture() {
 		return mScoreDigits;
+	}
+
+
+	public TextureRegion getBallMarkerTexture() {
+		return mBallMarkerRegion;
 	}
 
 

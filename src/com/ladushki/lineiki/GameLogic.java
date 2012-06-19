@@ -81,6 +81,8 @@ public class GameLogic implements IGameEvent {
 	}
 	
 	public void onMovingBallFinished() {
+		
+		//addScore(1); // TODO: remove when not needed
 		removeLines();			
 		this.mGameState = GameState.SELECT_BALL;
 		try {
@@ -211,7 +213,8 @@ public class GameLogic implements IGameEvent {
 			if (ball != null) {
 				this.mSelectedSource.set(x,y);
 				this.mGameState = GameState.SELECT_DESTINATION;
-				tile.startBlinking();
+				//tile.startBlinking();
+				mPlayingField.indicateSourceSelected(x,y);
 			}
 			break;
 		case SELECT_DESTINATION:
@@ -219,15 +222,18 @@ public class GameLogic implements IGameEvent {
 				/// selected an empty cell, move the ball there if possible
 				this.mSelectedDestination.set(x,y);
 				boolean ballMoved = moveBall(this.mSelectedSource, this.mSelectedDestination);
-				MapTile prevTile = mPlayingField.getTileAt(mSelectedSource.x, mSelectedSource.y);
-				prevTile.stopBlinking();
+				//MapTile prevTile = mPlayingField.getTileAt(mSelectedSource.x, mSelectedSource.y);
+				//prevTile.stopBlinking();
+				mPlayingField.unselectSource();
 			} else {
 				/// selected another ball, deselect the current one and select the new one
 				MapTile prevTile = mPlayingField.getTileAt(mSelectedSource.x, mSelectedSource.y);
 				prevTile.stopBlinking();
 				this.mSelectedSource.set(x,y);
 				this.mGameState = GameState.SELECT_DESTINATION;
-				tile.startBlinking();
+				//tile.startBlinking();
+				mPlayingField.indicateSourceSelected(x,y);
+
 			}
 			break;
 		}	

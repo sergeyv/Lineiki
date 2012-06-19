@@ -61,6 +61,8 @@ public class PlayingField extends Entity implements ITouchArea {
 	ITextureProvider mTextureProvider;
 	MapTile [][] mField;
 	
+	Sprite mSelectedSourceMarker;
+	
 	IGameEvent mEvent;
 	
 	public PlayingField(ITextureProvider pTextureProvider, LineikiActivity pParentActivity) {
@@ -68,7 +70,9 @@ public class PlayingField extends Entity implements ITouchArea {
 		mParentActivity = pParentActivity;		
 		this.mTextureProvider = pTextureProvider;	
 		mField = new MapTile[FIELD_WIDTH][FIELD_HEIGHT]; 
+
 		initBackground();
+		initBallMarker();
 	}
 
 	private void initBackground() {
@@ -84,7 +88,7 @@ public class PlayingField extends Entity implements ITouchArea {
 		}
 
 	}
-
+	
 	public BallSprite addBall(MapTile tile, BallColor pColor, int num) {
 		final BallSprite ball = new BallSprite(0, 0, this.mTextureProvider.getBallTexture().deepCopy(), pColor);
 		tile.setBall(ball);
@@ -291,5 +295,25 @@ public class PlayingField extends Entity implements ITouchArea {
 			)
 	);
 
+	}
+
+	/* Ball (source) marker stuff */
+	private void initBallMarker() {
+		mSelectedSourceMarker = new Sprite(0, 0, mTextureProvider.getBallMarkerTexture());
+		this.attachChild(mSelectedSourceMarker);
+		mSelectedSourceMarker.registerEntityModifier(new LoopEntityModifier(
+				new RotationModifier(0.3f, 0, 360)
+				));
+		mSelectedSourceMarker.setVisible(false);
+	}
+
+
+	public void indicateSourceSelected(int x, int y) {
+		mSelectedSourceMarker.setVisible(true);
+		mSelectedSourceMarker.setPosition(x*mTextureProvider.getTileSize(), y*mTextureProvider.getTileSize());
+	}
+	
+	public void unselectSource() {
+		mSelectedSourceMarker.setVisible(false);
 	}
 }
