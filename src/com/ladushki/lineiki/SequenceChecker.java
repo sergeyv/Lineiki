@@ -5,26 +5,26 @@ import java.util.ArrayList;
 public class SequenceChecker {
 
 	private BallColor m_lastColor;
-	ArrayList<MapTile> m_currentSequence = new ArrayList<MapTile>();
-	ArrayList<MapTile> m_allMatches = new ArrayList<MapTile>();
+	ArrayList<FieldItem> m_currentSequence = new ArrayList<FieldItem>();
+	ArrayList<FieldItem> m_allMatches = new ArrayList<FieldItem>();
 	
 	SequenceChecker() {
 		m_lastColor = null;
 	}
 
-	public void check(MapTile tile) {
-		BallSprite ball = tile.getBall();
-		if (ball == null) {
+	public void check(BallColor color, int x, int y) {
+		//BallSprite ball = tile.getBall();
+		if (color == null) {
 			endSequence();
 			return;
 		}
 		
-		if (m_lastColor != null && ball.getColor() != m_lastColor) {
+		if (m_lastColor != null && color != m_lastColor) {
 			endSequence();
 		}
 		
-		m_currentSequence.add(tile);
-		m_lastColor = ball.getColor();
+		m_currentSequence.add(new FieldItem(color, x, y));
+		m_lastColor = color;
 	}
 	
 	private void endSequence() {
@@ -39,10 +39,10 @@ public class SequenceChecker {
 		endSequence();
 	}
 	
-	public MapTile[] getMatchedTiles() {
+	public FieldItem[] getMatchedTiles() {
 		int num = m_allMatches.size();
 		if (num > 0) {
-			MapTile[] result = new MapTile[num];
+			FieldItem[] result = new FieldItem[num];
 			for (int i = 0; i < num; i++) {
 				result[i] = m_allMatches.get(i);
 			}

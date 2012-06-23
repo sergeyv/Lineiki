@@ -23,9 +23,8 @@ public class ScoreDisplay extends Entity {
 	private int[] mCurrentScore;
 	
 
-	public ScoreDisplay(ITextureProvider pTextureProvider, LineikiActivity pParentActivity, int pNumDigits) {
+	public ScoreDisplay(ITextureProvider pTextureProvider, int pNumDigits) {
 		
-		LineikiActivity mParentActivity = pParentActivity;		
 		this.mTextureProvider = pTextureProvider;	
 		this.mNumDigits = pNumDigits;
 		

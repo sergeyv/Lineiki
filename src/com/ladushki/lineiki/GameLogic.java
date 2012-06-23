@@ -18,6 +18,8 @@ public class GameLogic implements IGameEvent {
 
 	
 	GameState mGameState;
+	FieldItem [][] mField;
+	
 	BallDispencer mDispencer; 
 	PlayingField mPlayingField;
 	private static final Random RANDOM = new Random();
@@ -29,11 +31,14 @@ public class GameLogic implements IGameEvent {
 	
 	Point mSelectedSource;
 	Point mSelectedDestination;
+	
+	GameStep mUndoState;
 
 
 	public GameLogic(PlayingField pPlayingField, BallDispencer pDispencer) {
 		mPlayingField = pPlayingField;
 		mDispencer = pDispencer;
+		mUndoState = new GameStep();
 	}
 
 	public void startGame() {
@@ -53,11 +58,11 @@ public class GameLogic implements IGameEvent {
 	private void dropNextBalls() throws GameOverException {
 		BallColor[] next_colors = mDispencer.getNextBalls();
 		for (int i = 0; i < next_colors.length; i++) {
-			MapTile free_tile = getFreeTile();
-			if (free_tile == null) {
+			Point free_pt = getFreeTile();
+			if (free_pt == null) {
 				throw new GameOverException();
 			}
-			mPlayingField.addBall(free_tile, next_colors[i], i);
+			mPlayingField.addBall(free_pt, next_colors[i], i);
 		}
 		removeLines();
 
@@ -72,34 +77,47 @@ public class GameLogic implements IGameEvent {
 		Point[] path = findPath(pSource, pDest);
 		
 		if (path == null) {
+			// TODO: somehow animate that the ball can't be moved
 			return false;
 		}
 		
 		mPlayingField.indicateDestSelected(pDest.x, pDest.y);
 		mPlayingField.animateMovingBall(pSource, pDest, path);
 		
+		newUndoState(pSource, pDest);
+		
 		return true;
 	}
 	
+	private void newUndoState(Point pSource, Point pDest) {
+		mUndoState.clear();
+		
+	}
+
 	public void onMovingBallFinished() {
 		
 		//addScore(1); // TODO: remove when not needed
-		removeLines();			
-		this.mGameState = GameState.SELECT_BALL;
-		try {
-			dropNextBalls();
-		} catch (GameOverException e) {
-			//gameOver(); TODO: Game over
+		
+		// only drop balls if the previous move removed nothing
+		FieldItem[] matches = removeLines(); 
+		if (matches == null) {			
+			try {
+				dropNextBalls();
+			} catch (GameOverException e) {
+				//gameOver(); TODO: Game over
+			}
 		}
+		this.mGameState = GameState.SELECT_BALL;
 	}
 
-	MapTile getFreeTile() {
-		ArrayList<MapTile> freePoints = new ArrayList<MapTile>();
+
+	private Point getFreeTile() {
+		ArrayList<Point> freePoints = new ArrayList<Point>();
 		for (int j = 0; j < mPlayingField.FIELD_HEIGHT; j++) {
 			for (int i = 0; i < mPlayingField.FIELD_WIDTH; i++) {
-				final MapTile tile = mPlayingField.getTileAt(i, j);
-				if (tile.getBall() == null) {
-					freePoints.add(tile);
+				final BallColor color = mPlayingField.getBallColorAt(i, j);
+				if (color == null) {
+					freePoints.add(new Point(i, j));
 				}
 			}
 		}
@@ -110,7 +128,7 @@ public class GameLogic implements IGameEvent {
 		return freePoints.get(RANDOM.nextInt(freePoints.size()));
 	}
 		
-	Point[] findPath(Point pSource, Point pDest) {
+	private Point[] findPath(Point pSource, Point pDest) {
 		/*
 		 * Finds a path from pSource to pDest, if no path exists returns null
 		 */
@@ -118,22 +136,23 @@ public class GameLogic implements IGameEvent {
 		PathFinder finder = new PathFinder(mPlayingField.FIELD_WIDTH, mPlayingField.FIELD_HEIGHT);
 		for (int y = 0; y < mPlayingField.FIELD_HEIGHT; y++) {
 			for (int x = 0; x < mPlayingField.FIELD_WIDTH; x++) {
-				MapTile tile = mPlayingField.getTileAt(x, y);
-				finder.setPassable(x, y, !tile.isOccupied());
+				BallColor color = mPlayingField.getBallColorAt(x, y);
+				finder.setPassable(x, y, color == null);
 			}
 		}
 		return finder.findPath(pSource.x, pSource.y, pDest.x, pDest.y);
 	}
 	
-	void removeLines() {
+	private FieldItem[] removeLines() {
+		/// returns the number of balls removed
 		SequenceChecker checker = new SequenceChecker();
 		
 		/// check horizontals
 		for (int j = 0; j < mPlayingField.FIELD_HEIGHT; j++) {
 			checker.startRow();
 			for (int i = 0; i < mPlayingField.FIELD_WIDTH; i++) {
-				final MapTile tile = mPlayingField.getTileAt(i, j);
-				checker.check(tile);
+				final BallColor color = mPlayingField.getBallColorAt(i, j);
+				checker.check(color, i, j);
 			}
 		}
 		
@@ -141,8 +160,8 @@ public class GameLogic implements IGameEvent {
 		for (int j = 0; j < mPlayingField.FIELD_WIDTH; j++) {
 			checker.startRow();
 			for (int i = 0; i < mPlayingField.FIELD_HEIGHT; i++) {
-				final MapTile tile = mPlayingField.getTileAt(j, i);
-				checker.check(tile);
+				final BallColor color = mPlayingField.getBallColorAt(j, i);
+				checker.check(color, j, i);
 			}
 		}
 
@@ -155,8 +174,8 @@ public class GameLogic implements IGameEvent {
 				if (x < 0) continue;
 				if (x >= mPlayingField.FIELD_WIDTH) continue;
 				
-				final MapTile tile = mPlayingField.getTileAt(x, y);
-				checker.check(tile);
+				final BallColor color = mPlayingField.getBallColorAt(x, y);
+				checker.check(color, x, y);
 			}
 		}
 
@@ -169,22 +188,23 @@ public class GameLogic implements IGameEvent {
 				if (x < 0) continue;
 				if (x >= mPlayingField.FIELD_WIDTH) continue;
 				
-				final MapTile tile = mPlayingField.getTileAt(x, y);
-				checker.check(tile);
+				final BallColor color = mPlayingField.getBallColorAt(x, y);
+				checker.check(color, x, y);
 			}
 		}
 
-		MapTile[] tiles_to_remove = checker.getMatchedTiles();
+		FieldItem[] tiles_to_remove = checker.getMatchedTiles();
 		
 		if (tiles_to_remove != null) {
 			
 			/// score stuff
-			this.addScore(tiles_to_remove.length);
+			int scoreDelta = tiles_to_remove.length;
+			this.addScore(scoreDelta);
 			
-			for (MapTile tile : tiles_to_remove) {
-				mPlayingField.clearTile(tile);
-			}
+			mPlayingField.removeBalls(tiles_to_remove, scoreDelta);
+			
 		}
+		return tiles_to_remove;
 	}
 
 	
@@ -199,19 +219,18 @@ public class GameLogic implements IGameEvent {
 		this.mScoreDisplay.setScore(this.mScore);
 	}
 	
-	public void addScore(int pScore) {
-		setScore(this.mScore + pScore);
+	public void addScore(int pDelta) {
+		setScore(this.mScore + pDelta);
 	}
 
 	
 	public void onTileTouched(int x, int y) {
 		
-		final MapTile tile = mPlayingField.getTileAt(x, y);
-		final BallSprite ball = tile.getBall();
-
+		final BallColor color = mPlayingField.getBallColorAt(x, y);
+		
 		switch(this.mGameState) {
 		case SELECT_BALL:
-			if (ball != null) {
+			if (color != null) {
 				this.mSelectedSource.set(x,y);
 				this.mGameState = GameState.SELECT_DESTINATION;
 				//tile.startBlinking();
@@ -219,22 +238,16 @@ public class GameLogic implements IGameEvent {
 			}
 			break;
 		case SELECT_DESTINATION:
-			if (ball == null) {
+			if (color == null) {
 				/// selected an empty cell, move the ball there if possible
 				this.mSelectedDestination.set(x,y);
 				boolean ballMoved = moveBall(this.mSelectedSource, this.mSelectedDestination);
-				//MapTile prevTile = mPlayingField.getTileAt(mSelectedSource.x, mSelectedSource.y);
-				//prevTile.stopBlinking();
 				mPlayingField.unselectSource();
 			} else {
 				/// selected another ball, deselect the current one and select the new one
-				MapTile prevTile = mPlayingField.getTileAt(mSelectedSource.x, mSelectedSource.y);
-				prevTile.stopBlinking();
 				this.mSelectedSource.set(x,y);
 				this.mGameState = GameState.SELECT_DESTINATION;
-				//tile.startBlinking();
 				mPlayingField.indicateSourceSelected(x,y);
-
 			}
 			break;
 		}	

@@ -165,7 +165,7 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 		mMenuQuit = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "menu_quit.svg", 200, 50);
 
 		mScoreFieldBackground = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "score_bg.svg", tile_size, tile_size);
-		mScoreDigits = SVGBitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(mBuildableBitmapTextureAtlas, this, "digits.svg", tile_size*10, tile_size, 10, 1);
+		mScoreDigits = SVGBitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(mBuildableBitmapTextureAtlas, this, "digits.svg", tile_size*12, tile_size, 12, 1);
 		
 		try {
 			mBuildableBitmapTextureAtlas.build(new BlackPawnTextureBuilder<IBitmapTextureAtlasSource, BitmapTextureAtlas>(1));
@@ -190,7 +190,7 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 		disp.setPosition(mLeftBorder + getTileSize()*3, getTileSize()*0.2f);
 		mHUD.attachChild(disp);
 				
-		final ScoreDisplay score = new ScoreDisplay(this, this, 3);
+		final ScoreDisplay score = new ScoreDisplay(this, 3);
 		score.setPosition(getTileSize()*3, getTileSize()*11);
 		mHUD.attachChild(score);
 		

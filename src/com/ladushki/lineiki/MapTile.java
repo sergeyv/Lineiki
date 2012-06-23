@@ -4,7 +4,6 @@
 package com.ladushki.lineiki;
 
 import org.anddev.andengine.entity.sprite.AnimatedSprite;
-import org.anddev.andengine.input.touch.TouchEvent;
 import org.anddev.andengine.opengl.texture.region.TiledTextureRegion;
 
 /**
@@ -14,8 +13,6 @@ import org.anddev.andengine.opengl.texture.region.TiledTextureRegion;
 public class MapTile extends AnimatedSprite {
 	
 	private boolean m_bEven;
-	private boolean m_bBlinking;
-	
 	private BallSprite m_ball;
 
 	public MapTile(int pX, int pY, TiledTextureRegion pTiledTextureRegion, boolean pEven) {
@@ -29,7 +26,7 @@ public class MapTile extends AnimatedSprite {
 		}
 	}
 	
-	public void startBlinking() {
+	/*public void startBlinking() {
 		int start, end;
 		if (m_bEven) {
 			start = 0; //
@@ -54,7 +51,7 @@ public class MapTile extends AnimatedSprite {
 	
 	public boolean IsBlinking() {
 		return m_bBlinking;
-	}
+	}*/
 
 	void setBall(BallSprite pBall) {
 		if (m_ball != null) {

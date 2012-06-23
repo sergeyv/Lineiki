@@ -61,6 +61,8 @@ public class PlayingField extends Entity implements ITouchArea {
 	ITextureProvider mTextureProvider;
 	MapTile [][] mField;
 	
+	Point mLastTouch;
+	
 	Sprite mSelectedSourceMarker;
 	
 	IGameEvent mEvent;
@@ -71,6 +73,8 @@ public class PlayingField extends Entity implements ITouchArea {
 		mParentActivity = pParentActivity;		
 		this.mTextureProvider = pTextureProvider;	
 		mField = new MapTile[FIELD_WIDTH][FIELD_HEIGHT]; 
+		
+		mLastTouch = new Point();
 
 		initBackground();
 		initBallMarker();
@@ -100,7 +104,8 @@ public class PlayingField extends Entity implements ITouchArea {
 
 	}
 	
-	public BallSprite addBall(MapTile tile, BallColor pColor, int num) {
+	public BallSprite addBall(Point pt, BallColor pColor, int num) {
+		final MapTile tile = getTileAt(pt.x, pt.y);
 		final BallSprite ball = new BallSprite(0, 0, this.mTextureProvider.getBallTexture().deepCopy(), pColor);
 		tile.setBall(ball);
 		
@@ -115,8 +120,17 @@ public class PlayingField extends Entity implements ITouchArea {
 		return ball;
 	}
 
-	public MapTile getTileAt(int pX, int pY) {
+	private MapTile getTileAt(int pX, int pY) {
 		return this.mField[pX][pY];
+	}
+	
+	public BallColor getBallColorAt(int pX, int pY) {
+		MapTile tile = getTileAt(pX, pY);
+		BallSprite ball = tile.getBall();
+		if (ball != null) {
+			return ball.getColor();
+		}
+		return null;
 	}
 
 	public boolean contains(float pX, float pY) {
@@ -130,11 +144,15 @@ public class PlayingField extends Entity implements ITouchArea {
 	}
 
 	public boolean onAreaTouched(final TouchEvent pSceneTouchEvent, final float pTouchAreaLocalX, final float pTouchAreaLocalY) {
+		
 		int tile_size = mTextureProvider.getTileSize();
 		if (pSceneTouchEvent.getAction() == TouchEvent.ACTION_DOWN) {
 			final int x = (int) ((pSceneTouchEvent.getX() - this.getX()) / tile_size);
 			final int y = (int) ((pSceneTouchEvent.getY() - this.getY())  / tile_size);
 			mEvent.onTileTouched(x,y);
+			
+			mLastTouch.x = x * mTextureProvider.getTileSize();
+			mLastTouch.y = y * mTextureProvider.getTileSize();
 			return true;
 		}
 		return false;
@@ -203,11 +221,6 @@ public class PlayingField extends Entity implements ITouchArea {
 		final MapTile dest = getTileAt(destPt.x, destPt.y);
 		
 		final BallSprite ball = src.getBall();
-
-		/// wait until the dots are drawn
-		/*registerEntityModifier(
-				})
-			);*/
 		
 		ball.registerEntityModifier(new SequenceEntityModifier(
 					new ScaleModifier(0.2f, 1.0f, 1.2f),
@@ -336,6 +349,57 @@ public class PlayingField extends Entity implements ITouchArea {
 				new AlphaModifier(2.0f, 1.0f, 0.0f)
 				));
 		
+	}
+	
+	public void showScoreDelta(int pDelta, float x, float y) {
+		ScorePopup p = new ScorePopup(this.mTextureProvider, pDelta);
+		p.setPosition(x, y);
+
+		this.attachChild(p);
+		p.registerEntityModifier(new ParallelEntityModifier(
+				new IEntityModifierListener() {
+
+					public void onModifierStarted(
+							IModifier<IEntity> pModifier, IEntity pItem) {
+					}
+
+					public void onModifierFinished(
+							IModifier<IEntity> pModifier, IEntity pItem) {
+						
+						final IEntity item = pItem;
+						mParentActivity.runOnUpdateThread(new Runnable() {
+							public void run() {
+								detachChild(item);
+							}
+						});
+					}
+				},
+
+				new ScaleModifier(2.0f, 1, 3)
+				/// AlphaModifier doesn't work with sub-objects of an Entity
+				/// so we're applying it separately to each digit in ScorePopup
+				)
+		);
+	}
+	
+	
+	public void showScoreDelta(int pDelta) {
+		showScoreDelta(pDelta, mLastTouch.x, mLastTouch.y);
+	}
+
+	public void removeBalls(FieldItem[] tiles_to_remove, int pScoreDelta) {
+		float x = 0;
+		int y = 0;
+		for (FieldItem tile : tiles_to_remove) {
+			x+=tile.mX*mTextureProvider.getTileSize();
+			y+=tile.mY*mTextureProvider.getTileSize();
+			this.clearTile(getTileAt(tile.mX, tile.mY));
+		}	
+		x = x / tiles_to_remove.length;
+		y = y / tiles_to_remove.length;
+		
+		this.showScoreDelta(pScoreDelta, x, y);
+
 	}
 
 }
