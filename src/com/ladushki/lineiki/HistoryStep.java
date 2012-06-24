@@ -2,25 +2,25 @@ package com.ladushki.lineiki;
 
 import android.graphics.Point;
 
-public class GameStep {
+public class HistoryStep {
 	
 	Point mSource;
 	Point mDest;
-	FieldItem [] mBallsRemoved;
+	FieldItem [] mBallsRemovedFirstPass;
 	FieldItem [] mBallsDropped;
 	FieldItem [] mBallsRemovedSecondPass;
-	int mScoreDelta;
+	int mScore;
 
-	public GameStep() {
+	public HistoryStep() {
 	}
 	
 	public void clear() {
 		mSource = new Point(-1,-1);
 		mDest = new Point(-1,-1);
-		mBallsRemoved = null;
+		mBallsRemovedFirstPass = null;
 		mBallsDropped = null;
 		mBallsRemovedSecondPass = null;
-		mScoreDelta = 0;
+		mScore = 0;
 	}
 
 }

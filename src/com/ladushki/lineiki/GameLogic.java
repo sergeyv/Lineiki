@@ -32,13 +32,13 @@ public class GameLogic implements IGameEvent {
 	Point mSelectedSource;
 	Point mSelectedDestination;
 	
-	GameStep mUndoState;
+	HistoryStep mUndoState;
 
 
 	public GameLogic(PlayingField pPlayingField, BallDispencer pDispencer) {
 		mPlayingField = pPlayingField;
 		mDispencer = pDispencer;
-		mUndoState = new GameStep();
+		mUndoState = new HistoryStep();
 	}
 
 	public void startGame() {
@@ -57,14 +57,17 @@ public class GameLogic implements IGameEvent {
 
 	private void dropNextBalls() throws GameOverException {
 		BallColor[] next_colors = mDispencer.getNextBalls();
+		mUndoState.mBallsDropped = new FieldItem[3];
+		
 		for (int i = 0; i < next_colors.length; i++) {
 			Point free_pt = getFreeTile();
 			if (free_pt == null) {
 				throw new GameOverException();
 			}
 			mPlayingField.addBall(free_pt, next_colors[i], i);
+			mUndoState.mBallsDropped[i] = new FieldItem(next_colors[i], free_pt.x, free_pt.y);
 		}
-		removeLines();
+		mUndoState.mBallsRemovedSecondPass = removeLines();
 
 	}
 	
@@ -91,7 +94,9 @@ public class GameLogic implements IGameEvent {
 	
 	private void newUndoState(Point pSource, Point pDest) {
 		mUndoState.clear();
-		
+		mUndoState.mScore = mScore;
+		mUndoState.mSource = pSource;
+		mUndoState.mDest = pDest;
 	}
 
 	public void onMovingBallFinished() {
@@ -100,6 +105,7 @@ public class GameLogic implements IGameEvent {
 		
 		// only drop balls if the previous move removed nothing
 		FieldItem[] matches = removeLines(); 
+		this.mUndoState.mBallsRemovedFirstPass = matches;
 		if (matches == null) {			
 			try {
 				dropNextBalls();
@@ -251,5 +257,44 @@ public class GameLogic implements IGameEvent {
 			}
 			break;
 		}	
+	}
+
+	public void undoLastStep() {
+		int scoreDelta = mUndoState.mScore - mScore; 
+		mScore = mUndoState.mScore;
+		mScoreDisplay.setScore(mScore);
+		//mPlayingField.showScoreDelta(scoreDelta);
+		if (mUndoState.mBallsRemovedSecondPass != null) {
+			for (FieldItem f : mUndoState.mBallsRemovedSecondPass) {
+				mPlayingField.addBall(new Point(f.mX, f.mY), f.mColor, 0);
+			}
+		}
+
+		mPlayingField.removeBalls(mUndoState.mBallsDropped, scoreDelta);
+		
+		/*if (mUndoState.mBallsDropped != null) {
+			for (FieldItem f : mUndoState.mBallsDropped) {
+				mPlayingField.addBall(new Point(f.mX, f.mY), f.mColor, 0);
+			}
+		}*/
+
+		if (mUndoState.mBallsRemovedFirstPass != null) {
+			for (FieldItem f : mUndoState.mBallsRemovedFirstPass) {
+				mPlayingField.addBall(new Point(f.mX, f.mY), f.mColor, 0);
+			}
+		}
+		
+		moveBall(mUndoState.mDest, mUndoState.mSource);
+		/*Point[] path = findPath(mUndoState.mDest, mUnd);
+		
+		if (path == null) {
+			// TODO: somehow animate that the ball can't be moved
+			return false;
+		}
+		
+		mPlayingField.indicateDestSelected(pDest.x, pDest.y);
+
+		mPlayingField.animateMovingBall(mUndoState.mDest, mUndoState.pSource, pPath)*/
+		
 	}
 }

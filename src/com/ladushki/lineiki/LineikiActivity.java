@@ -308,6 +308,12 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 				this.mMainScene.clearChildScene();
 				this.mMenuScene.reset();
 				return true;
+			case MENU_UNDO:
+				// End Activity.
+				mGameLogic.undoLastStep();
+				this.mMainScene.clearChildScene();
+				this.mMenuScene.reset();
+				return true;
 			case MENU_QUIT:
 				// End Activity.
 				this.finish();

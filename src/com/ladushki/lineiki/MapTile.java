@@ -75,9 +75,9 @@ public class MapTile extends AnimatedSprite {
 		return m_ball;
 	}
 	
-	boolean isOccupied() {
+	/*boolean isOccupied() {
 		return this.m_ball != null;
-	}
+	}*/
 
 
 }

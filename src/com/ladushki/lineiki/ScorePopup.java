@@ -35,6 +35,8 @@ public class ScorePopup extends Entity {
 			digit.setCurrentTileIndex(11);
 		}
 			
+		pDelta = Math.abs(pDelta);
+		
 		/// hundreds
 		if (pDelta > 99) {
 			digit = newDigit();
