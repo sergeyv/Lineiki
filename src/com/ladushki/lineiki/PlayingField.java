@@ -388,8 +388,12 @@ public class PlayingField extends Entity implements ITouchArea {
 		showScoreDelta(pDelta, mLastTouch.x, mLastTouch.y);
 	}
 
-	public void removeBalls(FieldItem[] tiles_to_remove, int pScoreDelta) {
-		float x = 0;
+	public Point removeBalls(FieldItem[] tiles_to_remove) {
+		/*
+		 * Removes balls. Returns a Point which contains an approximate
+		 * center of the balls removed for UI purposes (displaying score popup)
+		 */
+		int x = 0;
 		int y = 0;
 		for (FieldItem tile : tiles_to_remove) {
 			x+=tile.mX*mTextureProvider.getTileSize();
@@ -399,8 +403,7 @@ public class PlayingField extends Entity implements ITouchArea {
 		x = x / tiles_to_remove.length;
 		y = y / tiles_to_remove.length;
 		
-		this.showScoreDelta(pScoreDelta, x, y);
-
+		return new Point(x,y);
 	}
 
 }

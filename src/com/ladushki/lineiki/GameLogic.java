@@ -34,6 +34,7 @@ public class GameLogic implements IGameEvent {
 	Point mSelectedDestination;
 	
 	HistoryStep mUndoState;
+	boolean mCanUndo;
 
 
 	public GameLogic(PlayingField pPlayingField, BallDispencer pDispencer) {
@@ -44,7 +45,8 @@ public class GameLogic implements IGameEvent {
 
 	public void startGame() {
 		
-		mScore = 0;
+		setScore(0);
+		setCanUndo(false);
 		this.mGameState = GameState.SELECT_BALL;
 		this.mSelectedSource = new Point(-1, -1);
 		this.mSelectedDestination = new Point(-1, -1);
@@ -52,8 +54,12 @@ public class GameLogic implements IGameEvent {
 		try {
 			dropNextBalls();
 		} catch (GameOverException e) {
-			// TODO
+			// Can't really happen
 		}
+	}
+
+	private void setCanUndo(boolean b) {
+		mCanUndo = b;
 	}
 
 	private void dropNextBalls() throws GameOverException {
@@ -103,6 +109,7 @@ public class GameLogic implements IGameEvent {
 								//gameOver(); TODO: Game over
 							}
 						}
+						setCanUndo(true);
 						GameLogic.this.mGameState = GameState.SELECT_BALL;
 						
 					}
@@ -113,11 +120,6 @@ public class GameLogic implements IGameEvent {
 		
 		return true;
 	}
-	
-	public void onMovingBallFinished() {
-		
-	}
-
 
 	private Point getFreeTile() {
 		ArrayList<Point> freePoints = new ArrayList<Point>();
@@ -209,7 +211,10 @@ public class GameLogic implements IGameEvent {
 			int scoreDelta = tiles_to_remove.length;
 			this.addScore(scoreDelta);
 			
-			mPlayingField.removeBalls(tiles_to_remove, scoreDelta);
+			Point p = mPlayingField.removeBalls(tiles_to_remove);
+			mPlayingField.showScoreDelta(scoreDelta, p.x, p.y);
+
+
 			
 		}
 		return tiles_to_remove;
@@ -272,6 +277,8 @@ public class GameLogic implements IGameEvent {
 	public void undoLastStep() {
 		
 		mGameState = GameState.ANIMATING_UNDOING; 
+		setCanUndo(false);
+		
 		int scoreDelta = mUndoState.mScore - mScore; 
 		mScore = mUndoState.mScore;
 		mScoreDisplay.setScore(mScore);
@@ -283,7 +290,7 @@ public class GameLogic implements IGameEvent {
 		}
 
 		if (mUndoState.mBallsDropped != null) {
-			mPlayingField.removeBalls(mUndoState.mBallsDropped, scoreDelta);
+			mPlayingField.removeBalls(mUndoState.mBallsDropped);
 			BallColor [] colors = new BallColor[3];
 			for (int i = 0; i < 3; i++) {
 				FieldItem fi = mUndoState.mBallsDropped[i];

@@ -302,7 +302,7 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 		switch(pMenuItem.getID()) {
 			case MENU_RESET:
 				// Restart the animation. 
-				this.mMainScene.reset();
+				mGameLogic.startGame();
 
 				// Remove the menu and reset it.
 				this.mMainScene.clearChildScene();
