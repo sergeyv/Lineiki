@@ -31,14 +31,28 @@ public class BallDispencer extends Entity {
 
 	}
 	
-	BallColor [] getNextBalls() {
+	public BallColor [] getNextBalls(boolean pReset) {
 		BallColor[] colors = new BallColor[NUM_BALLS];
 		for (int i = 0; i < NUM_BALLS; i++) {
 			final MapTile tile = mField[i];
 			final BallSprite ball = tile.getBall();
 			colors[i] = ball.getColor();
-			ball.setColor(BallColor.randomColor());
+			if (pReset) {
+				ball.setColor(BallColor.randomColor());
+			}
 		}
 		return colors;
+	}
+
+	public BallColor [] getNextBalls() {
+		return getNextBalls(true);
+	}
+	
+	public void setBalls(BallColor [] pColors) {
+		for (int i = 0; i < NUM_BALLS; i++) {
+			final MapTile tile = mField[i];
+			final BallSprite ball = tile.getBall();
+			ball.setColor(pColors[i]);
+		}
 	}
 }

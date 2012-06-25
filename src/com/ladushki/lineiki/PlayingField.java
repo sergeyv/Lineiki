@@ -198,7 +198,7 @@ public class PlayingField extends Entity implements ITouchArea {
 		attachChild(dot);
 	}
 	
-	public void animateMovingBall(Point pSource, Point pDest, Point [] pPath) {
+	public void animateMovingBall(Point pSource, Point pDest, Point [] pPath, final IAnimationListener listener) {
 		Point srcPt = pSource;
 		Point destPt = pDest;
 		int dotNum = 0;
@@ -248,7 +248,8 @@ public class PlayingField extends Entity implements ITouchArea {
 
 								public void onModifierFinished(
 										IModifier<IEntity> pModifier, IEntity pItem) {
-									mEvent.onMovingBallFinished();
+									//mEvent.onMovingBallFinished();
+									listener.done();
 								}
 							})
 					));

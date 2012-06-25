@@ -55,8 +55,8 @@ public class MapTile extends AnimatedSprite {
 
 	void setBall(BallSprite pBall) {
 		if (m_ball != null) {
-			/// either delete the existing ball or raise an error
-			detachBall();
+			/// TODO: raise an error
+			//detachBall();
 		}
 		m_ball = pBall;
 		if (pBall != null) {

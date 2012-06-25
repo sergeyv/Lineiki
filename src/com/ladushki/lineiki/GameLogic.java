@@ -12,8 +12,9 @@ public class GameLogic implements IGameEvent {
 	private enum GameState {
 		SELECT_BALL,
 		SELECT_DESTINATION,
-		MOVING_BALL,
-		DROPPING_NEW_BALLS
+		ANIMATING_MOVING_BALL,
+		DROPPING_NEW_BALLS,
+		ANIMATING_UNDOING,
 	}
 
 	
@@ -84,36 +85,37 @@ public class GameLogic implements IGameEvent {
 			return false;
 		}
 		
+		mGameState = GameState.ANIMATING_MOVING_BALL; 
 		mPlayingField.indicateDestSelected(pDest.x, pDest.y);
-		mPlayingField.animateMovingBall(pSource, pDest, path);
+		mPlayingField.animateMovingBall(pSource, pDest, path,
+				new IAnimationListener() {
+
+					public void done() {
+						//addScore(1); // TODO: remove when not needed
+						
+						// only drop balls if the previous move removed nothing
+						FieldItem[] matches = removeLines(); 
+						GameLogic.this.mUndoState.mBallsRemovedFirstPass = matches;
+						if (matches == null) {			
+							try {
+								dropNextBalls();
+							} catch (GameOverException e) {
+								//gameOver(); TODO: Game over
+							}
+						}
+						GameLogic.this.mGameState = GameState.SELECT_BALL;
+						
+					}
+			
+		});
 		
 		newUndoState(pSource, pDest);
 		
 		return true;
 	}
 	
-	private void newUndoState(Point pSource, Point pDest) {
-		mUndoState.clear();
-		mUndoState.mScore = mScore;
-		mUndoState.mSource = pSource;
-		mUndoState.mDest = pDest;
-	}
-
 	public void onMovingBallFinished() {
 		
-		//addScore(1); // TODO: remove when not needed
-		
-		// only drop balls if the previous move removed nothing
-		FieldItem[] matches = removeLines(); 
-		this.mUndoState.mBallsRemovedFirstPass = matches;
-		if (matches == null) {			
-			try {
-				dropNextBalls();
-			} catch (GameOverException e) {
-				//gameOver(); TODO: Game over
-			}
-		}
-		this.mGameState = GameState.SELECT_BALL;
 	}
 
 
@@ -259,7 +261,17 @@ public class GameLogic implements IGameEvent {
 		}	
 	}
 
+	private void newUndoState(Point pSource, Point pDest) {
+		mUndoState.clear();
+		mUndoState.mScore = mScore;
+		mUndoState.mSource = pSource;
+		mUndoState.mDest = pDest;
+	}
+
+
 	public void undoLastStep() {
+		
+		mGameState = GameState.ANIMATING_UNDOING; 
 		int scoreDelta = mUndoState.mScore - mScore; 
 		mScore = mUndoState.mScore;
 		mScoreDisplay.setScore(mScore);
@@ -270,8 +282,15 @@ public class GameLogic implements IGameEvent {
 			}
 		}
 
-		mPlayingField.removeBalls(mUndoState.mBallsDropped, scoreDelta);
-		
+		if (mUndoState.mBallsDropped != null) {
+			mPlayingField.removeBalls(mUndoState.mBallsDropped, scoreDelta);
+			BallColor [] colors = new BallColor[3];
+			for (int i = 0; i < 3; i++) {
+				FieldItem fi = mUndoState.mBallsDropped[i];
+				colors[i] = mUndoState.mBallsDropped[i].mColor;
+			}
+			mDispencer.setBalls(colors);
+		}
 		/*if (mUndoState.mBallsDropped != null) {
 			for (FieldItem f : mUndoState.mBallsDropped) {
 				mPlayingField.addBall(new Point(f.mX, f.mY), f.mColor, 0);
@@ -283,8 +302,23 @@ public class GameLogic implements IGameEvent {
 				mPlayingField.addBall(new Point(f.mX, f.mY), f.mColor, 0);
 			}
 		}
+		/// Bove the ball back to its position
+		Point[] path = findPath(mUndoState.mDest, mUndoState.mSource);
 		
-		moveBall(mUndoState.mDest, mUndoState.mSource);
+		//mPlayingField.indicateDestSelected(pDest.x, pDest.y);
+		mPlayingField.animateMovingBall(mUndoState.mDest, mUndoState.mSource, path,
+				new IAnimationListener() {
+
+					public void done() {
+						GameLogic.this.mGameState = GameState.SELECT_BALL;						
+					}
+			
+		});
+		
+		//newUndoState(pSource, pDest);
+		
+		//moveBall(mUndoState.mDest, mUndoState.mSource);
+		
 		/*Point[] path = findPath(mUndoState.mDest, mUnd);
 		
 		if (path == null) {
