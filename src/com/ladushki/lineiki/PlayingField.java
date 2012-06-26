@@ -248,7 +248,6 @@ public class PlayingField extends Entity implements ITouchArea {
 
 								public void onModifierFinished(
 										IModifier<IEntity> pModifier, IEntity pItem) {
-									//mEvent.onMovingBallFinished();
 									listener.done();
 								}
 							})
@@ -404,6 +403,39 @@ public class PlayingField extends Entity implements ITouchArea {
 		y = y / tiles_to_remove.length;
 		
 		return new Point(x,y);
+	}
+
+	public void animateClear(final IAnimationListener listener) {
+		/* Removes all the balls from the field 
+		 * Need to make sure that the field animation takes longer than
+		 * the removing balls animation, because the callback is invoked
+		 * when the _field animation_ is complete 
+		 */
+		for (int j = 0; j < FIELD_HEIGHT; j++) {
+			for (int i = 0; i < FIELD_WIDTH; i++) {
+				MapTile tile = getTileAt(i, j);
+				if (tile.getBall() != null) {
+					this.clearTile(tile);
+				}
+			}
+		}
+		
+		this.setScaleCenter(FIELD_WIDTH*mTextureProvider.getTileSize()/2, FIELD_HEIGHT*mTextureProvider.getTileSize()/2);
+		this.registerEntityModifier(new SequenceEntityModifier(
+				new IEntityModifierListener() {
+
+					public void onModifierStarted(
+							IModifier<IEntity> pModifier, IEntity pItem) {
+					}
+
+					public void onModifierFinished(
+							IModifier<IEntity> pModifier, IEntity pItem) {
+						listener.done();						
+					}
+				},
+				new ScaleModifier(0.4f, 1.0f, 0.3f),
+				new ScaleModifier(0.6f, 0.3f, 1.0f)
+			));
 	}
 
 }

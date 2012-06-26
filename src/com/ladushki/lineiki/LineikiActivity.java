@@ -22,6 +22,8 @@ import org.anddev.andengine.entity.text.ChangeableText;
 import org.anddev.andengine.entity.text.Text;
 import org.anddev.andengine.entity.util.FPSLogger;
 import org.anddev.andengine.input.touch.TouchEvent;
+import org.anddev.andengine.input.touch.detector.HoldDetector;
+import org.anddev.andengine.input.touch.detector.HoldDetector.IHoldDetectorListener;
 import org.anddev.andengine.input.touch.detector.ScrollDetector;
 import org.anddev.andengine.input.touch.detector.SurfaceScrollDetector;
 import org.anddev.andengine.input.touch.detector.ScrollDetector.IScrollDetectorListener;
@@ -48,8 +50,10 @@ import org.anddev.andengine.entity.layer.tiled.tmx.util.exception.TMXLoadExcepti
 import org.anddev.andengine.extension.svg.opengl.texture.atlas.bitmap.SVGBitmapTextureAtlasTextureRegionFactory;
 
 import android.app.Dialog;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -93,6 +97,10 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 	private TextureRegion mBallMarkerRegion;
 	private TextureRegion mSquareMarkerRegion;
 	
+	
+	private HoldDetector mHold;
+
+
 	@Override
 	public FontManager getFontManager() {
 		/// BaseActivity.getFontManager has a bug
@@ -128,6 +136,21 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 			engineOptions.setNeedsSound(true);
 			engineOptions.setNeedsMusic(true);
 
+			
+			
+		mHold = new HoldDetector(new IHoldDetectorListener() {
+		        
+		        public void onHoldFinished(HoldDetector pHoldDetector,
+		                        long pHoldTimeMilliseconds, float pHoldX, float pHoldY) {
+		                Toast.makeText(LineikiActivity.this, "HOLD FINISHED", Toast.LENGTH_SHORT).show();
+		        }
+		       
+		        public void onHold(HoldDetector pHoldDetector, long pHoldTimeMilliseconds,
+		                        float pHoldX, float pHoldY) {
+		                //mShoot = false;
+	                //Toast.makeText(getBaseContext(), "HOLD " + pHoldTimeMilliseconds, Toast.LENGTH_SHORT).show();
+		        }
+		});
 		return new Engine(engineOptions);
 		
 
@@ -197,7 +220,7 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 		/// main scene
 		this.mMainScene = new Scene();
 				
-		mMainScene.setBackground(new ColorBackground(0.09804f, 0.6274f, 0.8785f));
+		mMainScene.setBackground(new ColorBackground(0.1f, 0.1f, 0.1f));
 		
 		final PlayingField playingField = new PlayingField(this, this);
 		playingField.setPosition(mLeftBorder, getTileSize()*1.4f);
@@ -211,7 +234,13 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 		playingField.setEvent(mGameLogic);
 
 		mGameLogic.startGame();
-			
+
+		
+		/* HOLD-TO-ZOOM attempt */
+		/*mHold.setEnabled(true);
+		mMainScene.registerUpdateHandler(mHold);
+		mMainScene.setOnSceneTouchListener(mHold);*/
+
 		return mMainScene;
 	}
 
@@ -348,6 +377,43 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 		return mSquareMarkerRegion;
 	}
 
+	public void onSaveInstanceState(Bundle outBundle) {
+		/* Invoked when the activity needs to be destroyed and re-created
+		 * within the same process's lifecycle, i.e. when screen is rotated */
+		super.onSaveInstanceState(outBundle);
+		outBundle.putChar("key", 'A');
+	}
+	
+	public void onRestoreInstanceState(Bundle inBundle) {
+		super.onRestoreInstanceState(inBundle);
+		char c = inBundle.getChar("key");
+		
+	}
+	
+	public static final String PREFS_NAME = "MyPrefsFile";
+
+    @Override
+    protected void onCreate(Bundle state){
+       super.onCreate(state);
+       // Restore preferences
+       SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+       boolean silent = settings.getBoolean("silentMode", false);
+       //setSilent(silent);
+    }
+
+    @Override
+    protected void onStop(){
+       super.onStop();
+
+      // We need an Editor object to make preference changes.
+      // All objects are from android.context.Context
+      SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+      SharedPreferences.Editor editor = settings.edit();
+      //editor.putBoolean("silentMode", mSilentMode);
+
+      // Commit the edits!
+      editor.commit();
+    }
 	/*@Override
 	public boolean onSceneTouchEvent(Scene pScene, TouchEvent pSceneTouchEvent) {
 		//this.mScrollDetector.onTouchEvent(pSceneTouchEvent);

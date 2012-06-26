@@ -15,6 +15,7 @@ public class GameLogic implements IGameEvent {
 		ANIMATING_MOVING_BALL,
 		DROPPING_NEW_BALLS,
 		ANIMATING_UNDOING,
+		GAME_OVER,
 	}
 
 	
@@ -50,26 +51,30 @@ public class GameLogic implements IGameEvent {
 		this.mGameState = GameState.SELECT_BALL;
 		this.mSelectedSource = new Point(-1, -1);
 		this.mSelectedDestination = new Point(-1, -1);
+		
+		mPlayingField.animateClear(new IAnimationListener() {
 
-		try {
-			dropNextBalls();
-		} catch (GameOverException e) {
-			// Can't really happen
-		}
+			public void done() {
+				dropNextBalls();
+			}
+			
+		});
+
 	}
 
 	private void setCanUndo(boolean b) {
 		mCanUndo = b;
 	}
 
-	private void dropNextBalls() throws GameOverException {
+	private void dropNextBalls() {
 		BallColor[] next_colors = mDispencer.getNextBalls();
 		mUndoState.mBallsDropped = new FieldItem[3];
 		
 		for (int i = 0; i < next_colors.length; i++) {
 			Point free_pt = getFreeTile();
 			if (free_pt == null) {
-				throw new GameOverException();
+				this.gameOver();
+				return;
 			}
 			mPlayingField.addBall(free_pt, next_colors[i], i);
 			mUndoState.mBallsDropped[i] = new FieldItem(next_colors[i], free_pt.x, free_pt.y);
@@ -78,6 +83,11 @@ public class GameLogic implements IGameEvent {
 
 	}
 	
+	private void gameOver() {
+		mGameState = GameState.GAME_OVER;
+		//TODO: add some animation and stuff
+	}
+
 	private boolean moveBall(Point pSource, Point pDest) {
 		/*
 		 * Returns true if the ball is successfully moved, false if
@@ -103,11 +113,7 @@ public class GameLogic implements IGameEvent {
 						FieldItem[] matches = removeLines(); 
 						GameLogic.this.mUndoState.mBallsRemovedFirstPass = matches;
 						if (matches == null) {			
-							try {
-								dropNextBalls();
-							} catch (GameOverException e) {
-								//gameOver(); TODO: Game over
-							}
+							dropNextBalls();
 						}
 						setCanUndo(true);
 						GameLogic.this.mGameState = GameState.SELECT_BALL;
