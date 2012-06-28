@@ -2,6 +2,6 @@ TODO:
 =====
 
 - Game over
-- store state
++ store state
 - store highscores
 - zoom

@@ -52,15 +52,18 @@ public class GameLogic implements IGameEvent {
 		mDispencer = pDispencer;
 		mUndoState = new HistoryStep();
 	}
-
-	public void startGame() {
-		
+	
+	private void initGame() {
 		setScore(0);
 		setCanUndo(false);
 		this.mGameState = GameState.SELECT_BALL;
 		this.mSelectedSource = new Point(-1, -1);
-		this.mSelectedDestination = new Point(-1, -1);
+		this.mSelectedDestination = new Point(-1, -1);		
+	}
+
+	public void startGame() {
 		
+		initGame();
 		mPlayingField.animateClear(new IAnimationListener() {
 
 			public void done() {
@@ -68,7 +71,6 @@ public class GameLogic implements IGameEvent {
 			}
 			
 		});
-
 	}
 
 	private void setCanUndo(boolean b) {
@@ -343,6 +345,9 @@ public class GameLogic implements IGameEvent {
 	       // if yes then we can assume all the data is in a proper format
 	       int config_version = settings.getInt(STATE_VERSION_KEY, 0);
 	       if (config_version == STATE_VERSION) {
+	    	   
+	    	   initGame();
+	    	   
 	    	   String field = settings.getString(STATE_FIELD_KEY, null);
 	    	   //Toast.makeText(this, field, Toast.LENGTH_LONG).show();
 	           mPlayingField.deserialize(field);
@@ -352,8 +357,6 @@ public class GameLogic implements IGameEvent {
 	           mDispencer.deserialize(next_balls);
 	           
 	           setScore(settings.getInt(STATE_SCORE_KEY, 0));
-	           
-	           mGameState = GameState.SELECT_BALL;
 	       } else {
 	    	   this.startGame();
 	       }
