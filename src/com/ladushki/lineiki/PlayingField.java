@@ -294,6 +294,9 @@ public class PlayingField extends Entity implements ITouchArea {
 
 	public void clearTile(final MapTile tile) {
 		BallSprite ball = tile.getBall();
+		if (ball == null) {
+			return;
+		}
 		ball.registerEntityModifier(new SequenceEntityModifier(
 				new IEntityModifierListener() {
 
@@ -436,6 +439,43 @@ public class PlayingField extends Entity implements ITouchArea {
 				new ScaleModifier(0.4f, 1.0f, 0.3f),
 				new ScaleModifier(0.6f, 0.3f, 1.0f)
 			));
+	}
+	
+	public String serialize() {
+		/* converts the field to a simple text representation suitable for 
+		 * storing in prefs etc.
+		 * Not terribly efficient.
+		 */
+		String out = new String();
+		for (int j = 0; j < FIELD_HEIGHT; j++) {
+			String line = new String();
+			for (int i = 0; i < FIELD_WIDTH; i++) {
+				final BallColor color = getBallColorAt(i, j);
+				if (color == null) {
+					line += " ";
+				} else {
+					line += color.toChar();
+				}
+			}
+			line += "\n";
+			out += line;
+		}
+		return out;
+	}
+
+	public void deserialize(String data) {
+		String [] lines = data.split("\n");
+		for (int j = 0; j < FIELD_HEIGHT; j++) {
+			String line = lines[j];
+			for (int i = 0; i < FIELD_WIDTH; i++) {
+				MapTile tile = getTileAt(i, j);
+				final BallColor color = BallColor.fromChar(line.charAt(i));
+				if (color != null) {
+					final BallSprite ball = new BallSprite(0, 0, this.mTextureProvider.getBallTexture().deepCopy(), color);
+					tile.setBall(ball);
+				}
+			}
+		}		
 	}
 
 }

@@ -5,7 +5,9 @@ import java.util.Random;
 
 import org.anddev.andengine.entity.text.ChangeableText;
 
+import android.content.SharedPreferences;
 import android.graphics.Point;
+import android.widget.Toast;
 
 public class GameLogic implements IGameEvent {
 	
@@ -18,7 +20,14 @@ public class GameLogic implements IGameEvent {
 		GAME_OVER,
 	}
 
-	
+	/* saved state stuff */
+	private static final String STATE_VERSION_KEY = "VERSION";
+	private static final int STATE_VERSION = 2;
+	private static final String STATE_FIELD_KEY = "PLAYING_FIELD";
+	private static final String STATE_NEXT_BALLS_KEY = "NEXT_BALLS";
+	private static final String STATE_SCORE_KEY = "SCORE";
+
+
 	GameState mGameState;
 	FieldItem [][] mField;
 	
@@ -318,7 +327,6 @@ public class GameLogic implements IGameEvent {
 		/// Bove the ball back to its position
 		Point[] path = findPath(mUndoState.mDest, mUndoState.mSource);
 		
-		//mPlayingField.indicateDestSelected(pDest.x, pDest.y);
 		mPlayingField.animateMovingBall(mUndoState.mDest, mUndoState.mSource, path,
 				new IAnimationListener() {
 
@@ -326,22 +334,52 @@ public class GameLogic implements IGameEvent {
 						GameLogic.this.mGameState = GameState.SELECT_BALL;						
 					}
 			
-		});
-		
-		//newUndoState(pSource, pDest);
-		
-		//moveBall(mUndoState.mDest, mUndoState.mSource);
-		
-		/*Point[] path = findPath(mUndoState.mDest, mUnd);
-		
-		if (path == null) {
-			// TODO: somehow animate that the ball can't be moved
-			return false;
-		}
-		
-		mPlayingField.indicateDestSelected(pDest.x, pDest.y);
-
-		mPlayingField.animateMovingBall(mUndoState.mDest, mUndoState.pSource, pPath)*/
-		
+		});	
 	}
+	
+	public void loadGameState(SharedPreferences settings) {
+	       
+	       // check if the config had been created with the same version of the app
+	       // if yes then we can assume all the data is in a proper format
+	       int config_version = settings.getInt(STATE_VERSION_KEY, 0);
+	       if (config_version == STATE_VERSION) {
+	    	   String field = settings.getString(STATE_FIELD_KEY, null);
+	    	   //Toast.makeText(this, field, Toast.LENGTH_LONG).show();
+	           mPlayingField.deserialize(field);
+	           
+	    	   String next_balls = settings.getString(STATE_NEXT_BALLS_KEY, null);
+	    	   //Toast.makeText(this, next_balls, Toast.LENGTH_LONG).show();
+	           mDispencer.deserialize(next_balls);
+	           
+	           setScore(settings.getInt(STATE_SCORE_KEY, 0));
+	           
+	           mGameState = GameState.SELECT_BALL;
+	       } else {
+	    	   this.startGame();
+	       }
+		}
+
+	public void saveGameState(SharedPreferences settings) {
+		
+		  // We need an Editor object to make preference changes.
+		  // All objects are from android.context.Context
+
+		  SharedPreferences.Editor editor = settings.edit();
+		  
+		  // remember the version the config had been created with
+		  editor.putInt(STATE_VERSION_KEY, STATE_VERSION);
+		  // playing field
+		  String field = mPlayingField.serialize();
+		  editor.putString(STATE_FIELD_KEY, field);
+		  //Toast.makeText(this, field, Toast.LENGTH_LONG).show();
+
+		  String next_balls = mDispencer.serialize();
+		  editor.putString(STATE_NEXT_BALLS_KEY, next_balls);
+		  
+		  editor.putInt(STATE_SCORE_KEY, mScore);
+		  // Commit the edits!
+		  editor.commit();
+	}
+
+	
 }

@@ -42,4 +42,44 @@ public enum BallColor {
 	    return VALUES.get(RANDOM.nextInt(SIZE));
 	  }
 
+	public char toChar() {
+		switch(this) {
+		case BLUE:
+			return 'B';
+		case GREEN:
+			return 'G';
+		case RED:
+			return 'R';
+		case PURPLE: 
+			return 'P';
+		case CYAN:
+			return 'C';
+		case DARK_GREEN:
+			return 'D';
+		case ORANGE:
+			return 'O';
+		}
+		return ' ';
+	}
+
+	public static BallColor fromChar(char value) {
+		switch(value) {
+		case 'B':
+			return BLUE;
+		case 'G':
+			return GREEN;
+		case 'R':
+			return RED;
+		case 'P': 
+			return PURPLE;
+		case 'C':
+			return CYAN;
+		case 'D':
+			return DARK_GREEN;
+		case 'O':
+			return ORANGE;
+		}
+		return null;
+	}
+
 }

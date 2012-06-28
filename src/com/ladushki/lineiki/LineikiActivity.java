@@ -70,6 +70,9 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 
 	private static final int COUNT = 0;
 	
+	private static final String PREFS_NAME = "LineikiPrefsFile";
+
+	
 	private ZoomCamera mCamera;
 	/*private BitmapTextureAtlas mTexture;
 	private TiledTextureRegion mTextureRegion;*/
@@ -222,24 +225,24 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 				
 		mMainScene.setBackground(new ColorBackground(0.1f, 0.1f, 0.1f));
 		
-		final PlayingField playingField = new PlayingField(this, this);
-		playingField.setPosition(mLeftBorder, getTileSize()*1.4f);
-		mMainScene.attachChild(playingField);
-		mMainScene.registerTouchArea(playingField);	
+		PlayingField field = new PlayingField(this, this);
+		field.setPosition(mLeftBorder, getTileSize()*1.4f);
+		mMainScene.attachChild(field);
+		mMainScene.registerTouchArea(field);	
 		mMainScene.setTouchAreaBindingEnabled(true);
 		
-		mGameLogic = new GameLogic(playingField, disp);
+		mGameLogic = new GameLogic(field, disp);
 		mGameLogic.setScoreDisplay(score);
 		
-		playingField.setEvent(mGameLogic);
-
-		mGameLogic.startGame();
-
+		field.setEvent(mGameLogic);
 		
 		/* HOLD-TO-ZOOM attempt */
 		/*mHold.setEnabled(true);
 		mMainScene.registerUpdateHandler(mHold);
 		mMainScene.setOnSceneTouchListener(mHold);*/
+        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+		
+		mGameLogic.loadGameState(settings);
 
 		return mMainScene;
 	}
@@ -381,39 +384,25 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 		/* Invoked when the activity needs to be destroyed and re-created
 		 * within the same process's lifecycle, i.e. when screen is rotated */
 		super.onSaveInstanceState(outBundle);
-		outBundle.putChar("key", 'A');
+		// outBundle.putChar("key", 'A');
 	}
 	
 	public void onRestoreInstanceState(Bundle inBundle) {
 		super.onRestoreInstanceState(inBundle);
-		char c = inBundle.getChar("key");
+		// char c = inBundle.getChar("key");
 		
 	}
 	
-	public static final String PREFS_NAME = "MyPrefsFile";
-
-    @Override
-    protected void onCreate(Bundle state){
-       super.onCreate(state);
-       // Restore preferences
-       SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-       boolean silent = settings.getBoolean("silentMode", false);
-       //setSilent(silent);
-    }
-
+ 
     @Override
     protected void onStop(){
        super.onStop();
-
-      // We need an Editor object to make preference changes.
-      // All objects are from android.context.Context
-      SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-      SharedPreferences.Editor editor = settings.edit();
-      //editor.putBoolean("silentMode", mSilentMode);
-
-      // Commit the edits!
-      editor.commit();
+       SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+       mGameLogic.saveGameState(settings);
     }
+
+
+    
 	/*@Override
 	public boolean onSceneTouchEvent(Scene pScene, TouchEvent pSceneTouchEvent) {
 		//this.mScrollDetector.onTouchEvent(pSceneTouchEvent);
