@@ -26,6 +26,7 @@ public class GameLogic implements IGameEvent {
 	private static final String STATE_FIELD_KEY = "PLAYING_FIELD";
 	private static final String STATE_NEXT_BALLS_KEY = "NEXT_BALLS";
 	private static final String STATE_SCORE_KEY = "SCORE";
+	private static final String STATE_ZOOM_KEY = "ZOOM";
 
 
 	GameState mGameState;
@@ -38,7 +39,7 @@ public class GameLogic implements IGameEvent {
 	private ScoreDisplay mScoreDisplay;
 	private int mScore;
 
-	
+	private boolean mZoomMode;
 	
 	Point mSelectedSource;
 	Point mSelectedDestination;
@@ -51,6 +52,7 @@ public class GameLogic implements IGameEvent {
 		mPlayingField = pPlayingField;
 		mDispencer = pDispencer;
 		mUndoState = new HistoryStep();
+		mZoomMode = false;
 	}
 	
 	private void initGame() {
@@ -357,10 +359,16 @@ public class GameLogic implements IGameEvent {
 	           mDispencer.deserialize(next_balls);
 	           
 	           setScore(settings.getInt(STATE_SCORE_KEY, 0));
+	           
+	           setZoomMode(settings.getBoolean(STATE_ZOOM_KEY, false));
 	       } else {
 	    	   this.startGame();
 	       }
 		}
+
+	private void setZoomMode(boolean pZoomMode) {
+		this.mZoomMode = pZoomMode;
+	}
 
 	public void saveGameState(SharedPreferences settings) {
 		
@@ -378,8 +386,8 @@ public class GameLogic implements IGameEvent {
 
 		  String next_balls = mDispencer.serialize();
 		  editor.putString(STATE_NEXT_BALLS_KEY, next_balls);
-		  
 		  editor.putInt(STATE_SCORE_KEY, mScore);
+		  editor.putBoolean(STATE_ZOOM_KEY, mZoomMode);
 		  // Commit the edits!
 		  editor.commit();
 	}
