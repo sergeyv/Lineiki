@@ -110,7 +110,8 @@ public class GameLogic implements IGameEvent {
 		Point[] path = findPath(pSource, pDest);
 		
 		if (path == null) {
-			// TODO: somehow animate that the ball can't be moved
+			// can not move the ball
+			ballTrapped(pSource);
 			return false;
 		}
 		
@@ -138,6 +139,34 @@ public class GameLogic implements IGameEvent {
 		newUndoState(pSource, pDest);
 		
 		return true;
+	}
+
+
+	private void checkTile(int x, int y, boolean [][] checked, float delay, boolean is_initial_tile) {
+		if (x >= 0 && x < mPlayingField.FIELD_WIDTH &&
+			y >= 0 && y < mPlayingField.FIELD_HEIGHT &&
+			!checked[x][y]) {
+				if (is_initial_tile || !mPlayingField.getTileAt(x, y).isOccupied()) {
+					mPlayingField.getTileAt(x, y).blink(delay);
+					checked[x][y] = true;
+					delay = delay + 0.01f;
+					checkTile(x-1, y, checked, delay, false);
+					checkTile(x+1, y, checked, delay, false);
+					checkTile(x, y-1, checked, delay, false);
+					checkTile(x, y+1, checked, delay, false);
+				}
+		}
+
+	}
+	
+	private void ballTrapped(Point p) {
+		/* Indicates that the ball cannot be moved
+		 * by recursively finding and blinking all the tiles
+		 * which can be reached from the current position
+		 */
+		boolean [][] checked = new boolean[mPlayingField.FIELD_WIDTH][mPlayingField.FIELD_HEIGHT];
+		checkTile(p.x, p.y, checked, 0.0f, true);
+		
 	}
 
 	private Point getFreeTile() {

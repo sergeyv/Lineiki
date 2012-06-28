@@ -120,7 +120,7 @@ public class PlayingField extends Entity implements ITouchArea {
 		return ball;
 	}
 
-	private MapTile getTileAt(int pX, int pY) {
+	public MapTile getTileAt(int pX, int pY) {
 		return this.mField[pX][pY];
 	}
 	
@@ -290,6 +290,11 @@ public class PlayingField extends Entity implements ITouchArea {
 		}*/
 		//ball.setZIndex(999);
 
+	}
+
+	
+	public void animateBallTrapped(Point pSource) {
+		
 	}
 
 	public void clearTile(final MapTile tile) {

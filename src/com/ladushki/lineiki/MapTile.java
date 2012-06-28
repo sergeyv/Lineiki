@@ -3,6 +3,10 @@
  */
 package com.ladushki.lineiki;
 
+import org.anddev.andengine.entity.modifier.ColorModifier;
+import org.anddev.andengine.entity.modifier.DelayModifier;
+import org.anddev.andengine.entity.modifier.ParallelEntityModifier;
+import org.anddev.andengine.entity.modifier.SequenceEntityModifier;
 import org.anddev.andengine.entity.sprite.AnimatedSprite;
 import org.anddev.andengine.opengl.texture.region.TiledTextureRegion;
 
@@ -75,9 +79,20 @@ public class MapTile extends AnimatedSprite {
 		return m_ball;
 	}
 	
-	/*boolean isOccupied() {
+	boolean isOccupied() {
 		return this.m_ball != null;
-	}*/
+	}
 
 
+	public void blink(float delay) {
+		this.registerEntityModifier(new SequenceEntityModifier(
+				new DelayModifier(delay),
+				new ColorModifier(0.1f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f),
+				new ColorModifier(0.1f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f),
+				new ColorModifier(0.1f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f),
+				new ColorModifier(0.1f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f),
+				new ColorModifier(0.1f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f),
+				new ColorModifier(0.1f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f)
+				));
+	}
 }
