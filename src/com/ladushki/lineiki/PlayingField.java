@@ -44,7 +44,11 @@ import org.anddev.andengine.util.modifier.LoopModifier;
 import org.anddev.andengine.util.modifier.ease.EaseSineInOut;
 
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.graphics.Point;
+import android.os.Vibrator;
 import android.widget.Toast;
 
 /**
@@ -482,5 +486,33 @@ public class PlayingField extends Entity implements ITouchArea {
 			}
 		}		
 	}
+	
+	public void vibrate_3_times() {
+		
+		int d = 100;
+		long[] pattern = {
+			    0,  // Start immediately
+			    d,d,
+			    d,d,
+			    d,d
+			};
+		// Get instance of Vibrator from current Context
+		Vibrator v = (Vibrator) mParentActivity.getSystemService(Context.VIBRATOR_SERVICE);		 
+		v.vibrate(pattern, -1);		
+	}
+	
+	/*
+	private void flash_red_led()
+	{
+		NotificationManager nm = ( NotificationManager ) mParentActivity.getSystemService( Context.NOTIFICATION_SERVICE );
+		Notification notif = new Notification();
+		notif.ledARGB = 0xFFff0000;
+		notif.flags = Notification.FLAG_SHOW_LIGHTS;
+		notif.ledOnMS = 100;
+		notif.ledOffMS = 100;
+		nm.notify(0, notif);
+	}
+	*/
+
 
 }

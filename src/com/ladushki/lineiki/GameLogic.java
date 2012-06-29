@@ -166,6 +166,7 @@ public class GameLogic implements IGameEvent {
 		 */
 		boolean [][] checked = new boolean[mPlayingField.FIELD_WIDTH][mPlayingField.FIELD_HEIGHT];
 		checkTile(p.x, p.y, checked, 0.0f, true);
+		mPlayingField.vibrate_3_times();
 		
 	}
 

@@ -5,4 +5,4 @@ TODO:
 + store state
 - store highscores
 - zoom
-- indicate when ball can not be moved
++ indicate when ball can not be moved
