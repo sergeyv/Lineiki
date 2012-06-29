@@ -84,6 +84,10 @@ public class MapTile extends AnimatedSprite {
 	}
 
 
+	public void blink() {
+		this.blink(0);
+	}
+	
 	public void blink(float delay) {
 		this.registerEntityModifier(new SequenceEntityModifier(
 				new DelayModifier(delay),

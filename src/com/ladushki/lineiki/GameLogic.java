@@ -40,6 +40,7 @@ public class GameLogic implements IGameEvent {
 	private int mScore;
 
 	private boolean mZoomMode;
+	private boolean mZoomed;
 	
 	Point mSelectedSource;
 	Point mSelectedDestination;
@@ -60,7 +61,8 @@ public class GameLogic implements IGameEvent {
 		setCanUndo(false);
 		this.mGameState = GameState.SELECT_BALL;
 		this.mSelectedSource = new Point(-1, -1);
-		this.mSelectedDestination = new Point(-1, -1);		
+		this.mSelectedDestination = new Point(-1, -1);	
+		this.mZoomed = false;
 	}
 
 	public void startGame() {
@@ -288,28 +290,43 @@ public class GameLogic implements IGameEvent {
 	
 	public void onTileTouched(int x, int y) {
 		
+		mPlayingField.getTileAt(x,y).blink();
 		final BallColor color = mPlayingField.getBallColorAt(x, y);
 		
 		switch(this.mGameState) {
 		case SELECT_BALL:
-			if (color != null) {
-				this.mSelectedSource.set(x,y);
-				this.mGameState = GameState.SELECT_DESTINATION;
-				//tile.startBlinking();
-				mPlayingField.indicateSourceSelected(x,y);
+			if (this.mZoomMode && ! this.mZoomed) {
+				mPlayingField.zoomIn(x,y);
+				mZoomed = true;
+			} else {
+				if (color != null) {
+					this.mSelectedSource.set(x,y);
+					this.mGameState = GameState.SELECT_DESTINATION;
+					//tile.startBlinking();
+					mPlayingField.indicateSourceSelected(x,y);
+				}
+				mPlayingField.zoomOut();
+				mZoomed = false;
 			}
 			break;
 		case SELECT_DESTINATION:
-			if (color == null) {
-				/// selected an empty cell, move the ball there if possible
-				this.mSelectedDestination.set(x,y);
-				boolean ballMoved = moveBall(this.mSelectedSource, this.mSelectedDestination);
-				mPlayingField.unselectSource();
+			if (this.mZoomMode && ! this.mZoomed) {
+				mPlayingField.zoomIn(x,y);
+				mZoomed = true;
 			} else {
-				/// selected another ball, deselect the current one and select the new one
-				this.mSelectedSource.set(x,y);
-				this.mGameState = GameState.SELECT_DESTINATION;
-				mPlayingField.indicateSourceSelected(x,y);
+				if (color == null) {
+					/// selected an empty cell, move the ball there if possible
+					this.mSelectedDestination.set(x,y);
+					boolean ballMoved = moveBall(this.mSelectedSource, this.mSelectedDestination);
+					mPlayingField.unselectSource();
+				} else {
+					/// selected another ball, deselect the current one and select the new one
+					this.mSelectedSource.set(x,y);
+					this.mGameState = GameState.SELECT_DESTINATION;
+					mPlayingField.indicateSourceSelected(x,y);
+				}
+				mPlayingField.zoomOut();
+				mZoomed = false;
 			}
 			break;
 		}	
@@ -390,7 +407,7 @@ public class GameLogic implements IGameEvent {
 	           
 	           setScore(settings.getInt(STATE_SCORE_KEY, 0));
 	           
-	           setZoomMode(settings.getBoolean(STATE_ZOOM_KEY, false));
+	           setZoomMode(true);//settings.getBoolean(STATE_ZOOM_KEY, false));
 	       } else {
 	    	   this.startGame();
 	       }

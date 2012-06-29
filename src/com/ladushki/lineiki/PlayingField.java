@@ -41,6 +41,8 @@ import org.anddev.andengine.opengl.texture.region.TiledTextureRegion;
 import org.anddev.andengine.util.Debug;
 import org.anddev.andengine.util.modifier.IModifier;
 import org.anddev.andengine.util.modifier.LoopModifier;
+import org.anddev.andengine.util.modifier.ease.EaseCubicInOut;
+import org.anddev.andengine.util.modifier.ease.EaseElasticInOut;
 import org.anddev.andengine.util.modifier.ease.EaseSineInOut;
 
 import android.app.Activity;
@@ -151,8 +153,8 @@ public class PlayingField extends Entity implements ITouchArea {
 		
 		int tile_size = mTextureProvider.getTileSize();
 		if (pSceneTouchEvent.getAction() == TouchEvent.ACTION_DOWN) {
-			final int x = (int) ((pSceneTouchEvent.getX() - this.getX()) / tile_size);
-			final int y = (int) ((pSceneTouchEvent.getY() - this.getY())  / tile_size);
+			final int x = (int) (pTouchAreaLocalX / tile_size);
+			final int y = (int) (pTouchAreaLocalY  / tile_size);
 			mEvent.onTileTouched(x,y);
 			
 			mLastTouch.x = x * mTextureProvider.getTileSize();
@@ -296,10 +298,6 @@ public class PlayingField extends Entity implements ITouchArea {
 
 	}
 
-	
-	public void animateBallTrapped(Point pSource) {
-		
-	}
 
 	public void clearTile(final MapTile tile) {
 		BallSprite ball = tile.getBall();
@@ -499,6 +497,19 @@ public class PlayingField extends Entity implements ITouchArea {
 		// Get instance of Vibrator from current Context
 		Vibrator v = (Vibrator) mParentActivity.getSystemService(Context.VIBRATOR_SERVICE);		 
 		v.vibrate(pattern, -1);		
+	}
+
+	public void zoomIn(int x, int y) {
+		this.setScaleCenter((x+0.5f)*mTextureProvider.getTileSize(), (y+0.5f)*mTextureProvider.getTileSize());
+		this.registerEntityModifier(
+				new ScaleModifier(1.0f, 1.0f, 1.5f,  EaseCubicInOut.getInstance())
+				);
+	}
+
+	public void zoomOut() {
+		this.registerEntityModifier(
+				new ScaleModifier(1.0f, 1.5f, 1.0f, EaseCubicInOut.getInstance())
+				);
 	}
 	
 	/*
