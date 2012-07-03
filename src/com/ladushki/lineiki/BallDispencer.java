@@ -1,7 +1,6 @@
 package com.ladushki.lineiki;
 
 import org.anddev.andengine.entity.Entity;
-import org.anddev.andengine.opengl.texture.region.TiledTextureRegion;
 
 public class BallDispencer extends Entity {
 	

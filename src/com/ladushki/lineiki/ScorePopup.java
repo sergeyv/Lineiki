@@ -3,13 +3,10 @@ package com.ladushki.lineiki;
 import javax.microedition.khronos.opengles.GL10;
 
 import org.anddev.andengine.entity.Entity;
-import org.anddev.andengine.entity.IEntity;
 import org.anddev.andengine.entity.modifier.AlphaModifier;
 import org.anddev.andengine.entity.modifier.ParallelEntityModifier;
 import org.anddev.andengine.entity.modifier.ScaleModifier;
-import org.anddev.andengine.entity.modifier.IEntityModifier.IEntityModifierListener;
 import org.anddev.andengine.entity.sprite.AnimatedSprite;
-import org.anddev.andengine.util.modifier.IModifier;
 
 
 public class ScorePopup extends Entity {

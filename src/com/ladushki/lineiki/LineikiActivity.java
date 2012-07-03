@@ -11,22 +11,25 @@ import org.anddev.andengine.engine.options.resolutionpolicy.RatioResolutionPolic
 import org.anddev.andengine.entity.scene.Scene;
 import org.anddev.andengine.entity.scene.Scene.IOnSceneTouchListener;
 import org.anddev.andengine.entity.scene.background.ColorBackground;
-import org.anddev.andengine.entity.scene.background.SpriteBackground;
 import org.anddev.andengine.entity.scene.menu.MenuScene;
 import org.anddev.andengine.entity.scene.menu.MenuScene.IOnMenuItemClickListener;
 import org.anddev.andengine.entity.scene.menu.item.IMenuItem;
 import org.anddev.andengine.entity.scene.menu.item.SpriteMenuItem;
-import org.anddev.andengine.entity.sprite.AnimatedSprite;
-import org.anddev.andengine.entity.sprite.Sprite;
-import org.anddev.andengine.entity.text.ChangeableText;
-import org.anddev.andengine.entity.text.Text;
 import org.anddev.andengine.entity.util.FPSLogger;
+import org.anddev.andengine.extension.input.touch.controller.MultiTouch;
+import org.anddev.andengine.extension.input.touch.controller.MultiTouchController;
+import org.anddev.andengine.extension.input.touch.detector.PinchZoomDetector;
+import org.anddev.andengine.extension.input.touch.detector.PinchZoomDetector.IPinchZoomDetectorListener;
+import org.anddev.andengine.extension.input.touch.exception.MultiTouchException;
+import org.anddev.andengine.extension.svg.opengl.texture.atlas.bitmap.SVGBitmapTextureAtlasTextureRegionFactory;
 import org.anddev.andengine.input.touch.TouchEvent;
+import org.anddev.andengine.input.touch.detector.ClickDetector;
+import org.anddev.andengine.input.touch.detector.ClickDetector.IClickDetectorListener;
 import org.anddev.andengine.input.touch.detector.HoldDetector;
 import org.anddev.andengine.input.touch.detector.HoldDetector.IHoldDetectorListener;
 import org.anddev.andengine.input.touch.detector.ScrollDetector;
-import org.anddev.andengine.input.touch.detector.SurfaceScrollDetector;
 import org.anddev.andengine.input.touch.detector.ScrollDetector.IScrollDetectorListener;
+import org.anddev.andengine.input.touch.detector.SurfaceScrollDetector;
 import org.anddev.andengine.opengl.font.Font;
 import org.anddev.andengine.opengl.font.FontFactory;
 import org.anddev.andengine.opengl.font.FontManager;
@@ -37,29 +40,30 @@ import org.anddev.andengine.opengl.texture.atlas.bitmap.BuildableBitmapTextureAt
 import org.anddev.andengine.opengl.texture.atlas.bitmap.source.IBitmapTextureAtlasSource;
 import org.anddev.andengine.opengl.texture.atlas.buildable.builder.BlackPawnTextureBuilder;
 import org.anddev.andengine.opengl.texture.atlas.buildable.builder.ITextureBuilder.TextureAtlasSourcePackingException;
-import org.anddev.andengine.opengl.texture.region.BaseTextureRegion;
 import org.anddev.andengine.opengl.texture.region.TextureRegion;
 import org.anddev.andengine.opengl.texture.region.TiledTextureRegion;
 import org.anddev.andengine.ui.activity.BaseGameActivity;
 import org.anddev.andengine.util.Debug;
-import org.anddev.andengine.util.HorizontalAlign;
-import org.anddev.andengine.entity.layer.tiled.tmx.TMXTiledMap;
-import org.anddev.andengine.entity.layer.tiled.tmx.TMXLoader;
-import org.anddev.andengine.entity.layer.tiled.tmx.TMXLayer;
-import org.anddev.andengine.entity.layer.tiled.tmx.util.exception.TMXLoadException;
-import org.anddev.andengine.extension.svg.opengl.texture.atlas.bitmap.SVGBitmapTextureAtlasTextureRegionFactory;
 
 import android.app.Dialog;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.Toast;
 
-public class LineikiActivity extends BaseGameActivity implements ITextureProvider, IOnMenuItemClickListener  {
+public class LineikiActivity 
+	extends 
+		BaseGameActivity 
+	implements 
+		ITextureProvider, 
+		IOnMenuItemClickListener, 
+		IScrollDetectorListener, 
+		IPinchZoomDetectorListener, 
+		IOnSceneTouchListener,
+		IClickDetectorListener
+  {
 
 	/*static final int CAMERA_WIDTH = 320;
 	static final int CAMERA_HEIGHT = 480;*/
@@ -102,6 +106,11 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 	
 	
 	private HoldDetector mHold;
+	private SurfaceScrollDetector mScrollDetector;
+	private PinchZoomDetector mPinchZoomDetector;
+	private ClickDetector mClickDetector;
+	private float mPinchZoomStartedCameraZoomFactor;
+	private PlayingField mPlayingField;
 
 
 	@Override
@@ -118,10 +127,6 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 	}*/
 
 	public Engine onLoadEngine() {		
-		/*final int maxVBound = CAMERA_HEIGHT*2;
-		final int maxHBound = CAMERA_HEIGHT*2;
-		this.mCamera.setBounds(-maxHBound, maxHBound, -maxVBound, maxVBound);
-		this.mCamera.setBoundsEnabled(true);*/
 		
 		final DisplayMetrics displayMetrics = new DisplayMetrics();
         this.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
@@ -131,6 +136,10 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 
 		this.mCamera = new ZoomCamera(0, 0, mScreenWidth, mScreenHeight);
 
+		/*final int maxVBound = mScreenWidth;
+		final int maxHBound = mScreenHeight;*/
+		this.mCamera.setBounds(0, mScreenWidth, 0, mScreenHeight);
+		this.mCamera.setBoundsEnabled(true);
 
 		final EngineOptions engineOptions = new EngineOptions(true,
 				ScreenOrientation.PORTRAIT, new RatioResolutionPolicy(
@@ -138,6 +147,7 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 
 			engineOptions.setNeedsSound(true);
 			engineOptions.setNeedsMusic(true);
+
 
 			
 			
@@ -154,10 +164,21 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 	                //Toast.makeText(getBaseContext(), "HOLD " + pHoldTimeMilliseconds, Toast.LENGTH_SHORT).show();
 		        }
 		});
-		return new Engine(engineOptions);
 		
+		
+		Engine engine = new Engine(engineOptions);
+		
+		try {
+            if(MultiTouch.isSupported(this)) {
+                    engine.setTouchController(new MultiTouchController());
+            } else {
+                    Toast.makeText(this, "Sorry your device does NOT support MultiTouch!\n\n(No PinchZoom is possible!)", Toast.LENGTH_LONG).show();
+            }
+	    } catch (final MultiTouchException e) {
+	            Toast.makeText(this, "Sorry your Android Version does NOT support MultiTouch!\n\n(No PinchZoom is possible!)", Toast.LENGTH_LONG).show();
+	    }
 
-
+		return engine;
 	}
 
 	public void onLoadResources() {
@@ -225,24 +246,40 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
 				
 		mMainScene.setBackground(new ColorBackground(0.1f, 0.1f, 0.1f));
 		
-		PlayingField field = new PlayingField(this, this);
-		field.setPosition(mLeftBorder, getTileSize()*1.4f);
-		mMainScene.attachChild(field);
-		mMainScene.registerTouchArea(field);	
-		mMainScene.setTouchAreaBindingEnabled(true);
+		this.mPlayingField = new PlayingField(this, this);
+		mPlayingField.setPosition(mLeftBorder, getTileSize()*1.4f);
+		mMainScene.attachChild(mPlayingField);
+		//mMainScene.registerTouchArea(field);	
+		//mMainScene.setTouchAreaBindingEnabled(true);
 		
-		mGameLogic = new GameLogic(field, disp);
+		mGameLogic = new GameLogic(mPlayingField, disp);
 		mGameLogic.setScoreDisplay(score);
 		
-		field.setEvent(mGameLogic);
+		mPlayingField.setEvent(mGameLogic);
 		
-		/* HOLD-TO-ZOOM attempt */
-		/*mHold.setEnabled(true);
-		mMainScene.registerUpdateHandler(mHold);
-		mMainScene.setOnSceneTouchListener(mHold);*/
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
 		
 		mGameLogic.loadGameState(settings);
+		
+		// click
+		this.mClickDetector = new ClickDetector(this);
+		
+		// scroll
+		this.mScrollDetector = new SurfaceScrollDetector(this);
+		
+		// pinch zoom
+        if(MultiTouch.isSupportedByAndroidVersion()) {
+                try {
+                        this.mPinchZoomDetector = new PinchZoomDetector(this);
+                } catch (final MultiTouchException e) {
+                        this.mPinchZoomDetector = null;
+                }
+        } else {
+                this.mPinchZoomDetector = null;
+        }
+
+        this.mMainScene.setOnSceneTouchListener(this);
+        this.mMainScene.setTouchAreaBindingEnabled(true);
 
 		return mMainScene;
 	}
@@ -278,13 +315,6 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
     public void runOnUpdateThread(final Runnable pRunnable) {
         this.mEngine.runOnUpdateThread(pRunnable);
     }
-	/*@Override
-	public void onScroll(ScrollDetector pScollDetector, TouchEvent pTouchEvent,
-			float pDistanceX, float pDistanceY) {
-		Log.d(TAG, "Scroll {x:"+pDistanceX+", y: "+pDistanceY+"}");  
-		this.mCamera.offsetCenter(-pDistanceX, -pDistanceY);
-	}*/
-
 
 	public void onLoadComplete() {
 		// TODO Auto-generated method stub
@@ -401,6 +431,57 @@ public class LineikiActivity extends BaseGameActivity implements ITextureProvide
        mGameLogic.saveGameState(settings);
     }
 
+    /* PINCH ZOOM */
+    public boolean onSceneTouchEvent(final Scene pScene, final TouchEvent pSceneTouchEvent) {
+            if(this.mPinchZoomDetector != null) {
+                    this.mPinchZoomDetector.onTouchEvent(pSceneTouchEvent);
+
+                    if(this.mPinchZoomDetector.isZooming()) {
+                            this.mScrollDetector.setEnabled(false);
+                    } else {
+                            if(pSceneTouchEvent.isActionDown()) {
+                                    this.mScrollDetector.setEnabled(true);
+                            }
+                            this.mScrollDetector.onTouchEvent(pSceneTouchEvent);
+                    }
+            } else {
+                    this.mScrollDetector.onTouchEvent(pSceneTouchEvent);
+            }
+            this.mClickDetector.onTouchEvent(pSceneTouchEvent);
+
+            return true;
+    }
+
+
+    
+    
+    public void onScroll(final ScrollDetector pScollDetector, final TouchEvent pTouchEvent, final float pDistanceX, final float pDistanceY) {
+            final float zoomFactor = this.mCamera.getZoomFactor();
+            this.mCamera.offsetCenter(-pDistanceX / zoomFactor, -pDistanceY / zoomFactor);
+    }
+    
+    public void onPinchZoomStarted(final PinchZoomDetector pPinchZoomDetector, final TouchEvent pTouchEvent) {
+            this.mPinchZoomStartedCameraZoomFactor = this.mCamera.getZoomFactor();
+    }
+
+    public void onPinchZoom(final PinchZoomDetector pPinchZoomDetector, final TouchEvent pTouchEvent, final float pZoomFactor) {
+            this.mCamera.setZoomFactor(this.mPinchZoomStartedCameraZoomFactor * pZoomFactor);
+    }
+
+    public void onPinchZoomFinished(final PinchZoomDetector pPinchZoomDetector, final TouchEvent pTouchEvent, final float pZoomFactor) {
+            this.mCamera.setZoomFactor(this.mPinchZoomStartedCameraZoomFactor * pZoomFactor);
+    }
+
+	public void onClick(ClickDetector pClickDetector, TouchEvent pTouchEvent) {
+		/*Toast.makeText(
+				this,
+				"CLICK", 
+				//String.format("ACTION: %d", pSceneTouchEvent.getPointerID()),
+				Toast.LENGTH_SHORT).show();*/
+		
+		float[] coords = this.mPlayingField.convertSceneToLocalCoordinates(pTouchEvent.getX(), pTouchEvent.getY());
+		mPlayingField.onTouch(coords[0], coords[1]);
+	}
 
     
 	/*@Override

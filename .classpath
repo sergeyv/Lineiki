@@ -4,7 +4,8 @@
 	<classpathentry kind="lib" path="/home/sergey/workspace/Lineiki/libs/andengine.jar" sourcepath="/home/sergey/workspace/AndEngine"/>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
 	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="deps/AndEngineSVGTextureRegionExtension"/>
+	<classpathentry kind="src" path="deps/AndEngineMultiTouchExtension/src"/>
 	<classpathentry kind="src" path="gen"/>
-	<classpathentry kind="src" path="deps"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

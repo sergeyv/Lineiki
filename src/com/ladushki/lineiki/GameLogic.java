@@ -3,11 +3,8 @@ package com.ladushki.lineiki;
 import java.util.ArrayList;
 import java.util.Random;
 
-import org.anddev.andengine.entity.text.ChangeableText;
-
 import android.content.SharedPreferences;
 import android.graphics.Point;
-import android.widget.Toast;
 
 public class GameLogic implements IGameEvent {
 	
@@ -26,7 +23,6 @@ public class GameLogic implements IGameEvent {
 	private static final String STATE_FIELD_KEY = "PLAYING_FIELD";
 	private static final String STATE_NEXT_BALLS_KEY = "NEXT_BALLS";
 	private static final String STATE_SCORE_KEY = "SCORE";
-	private static final String STATE_ZOOM_KEY = "ZOOM";
 
 
 	GameState mGameState;
@@ -39,9 +35,6 @@ public class GameLogic implements IGameEvent {
 	private ScoreDisplay mScoreDisplay;
 	private int mScore;
 
-	private boolean mZoomMode;
-	private boolean mZoomed;
-	
 	Point mSelectedSource;
 	Point mSelectedDestination;
 	
@@ -53,7 +46,6 @@ public class GameLogic implements IGameEvent {
 		mPlayingField = pPlayingField;
 		mDispencer = pDispencer;
 		mUndoState = new HistoryStep();
-		mZoomMode = false;
 	}
 	
 	private void initGame() {
@@ -62,7 +54,6 @@ public class GameLogic implements IGameEvent {
 		this.mGameState = GameState.SELECT_BALL;
 		this.mSelectedSource = new Point(-1, -1);
 		this.mSelectedDestination = new Point(-1, -1);	
-		this.mZoomed = false;
 	}
 
 	public void startGame() {
@@ -290,43 +281,28 @@ public class GameLogic implements IGameEvent {
 	
 	public void onTileTouched(int x, int y) {
 		
-		mPlayingField.getTileAt(x,y).blink();
 		final BallColor color = mPlayingField.getBallColorAt(x, y);
 		
 		switch(this.mGameState) {
 		case SELECT_BALL:
-			if (this.mZoomMode && ! this.mZoomed) {
-				mPlayingField.zoomIn(x,y);
-				mZoomed = true;
-			} else {
-				if (color != null) {
-					this.mSelectedSource.set(x,y);
-					this.mGameState = GameState.SELECT_DESTINATION;
-					//tile.startBlinking();
-					mPlayingField.indicateSourceSelected(x,y);
-				}
-				mPlayingField.zoomOut();
-				mZoomed = false;
+			if (color != null) {
+				this.mSelectedSource.set(x,y);
+				this.mGameState = GameState.SELECT_DESTINATION;
+				//tile.startBlinking();
+				mPlayingField.indicateSourceSelected(x,y);
 			}
 			break;
 		case SELECT_DESTINATION:
-			if (this.mZoomMode && ! this.mZoomed) {
-				mPlayingField.zoomIn(x,y);
-				mZoomed = true;
+			if (color == null) {
+				/// selected an empty cell, move the ball there if possible
+				this.mSelectedDestination.set(x,y);
+				boolean ballMoved = moveBall(this.mSelectedSource, this.mSelectedDestination);
+				mPlayingField.unselectSource();
 			} else {
-				if (color == null) {
-					/// selected an empty cell, move the ball there if possible
-					this.mSelectedDestination.set(x,y);
-					boolean ballMoved = moveBall(this.mSelectedSource, this.mSelectedDestination);
-					mPlayingField.unselectSource();
-				} else {
-					/// selected another ball, deselect the current one and select the new one
-					this.mSelectedSource.set(x,y);
-					this.mGameState = GameState.SELECT_DESTINATION;
-					mPlayingField.indicateSourceSelected(x,y);
-				}
-				mPlayingField.zoomOut();
-				mZoomed = false;
+				/// selected another ball, deselect the current one and select the new one
+				this.mSelectedSource.set(x,y);
+				this.mGameState = GameState.SELECT_DESTINATION;
+				mPlayingField.indicateSourceSelected(x,y);
 			}
 			break;
 		}	
@@ -405,17 +381,11 @@ public class GameLogic implements IGameEvent {
 	    	   //Toast.makeText(this, next_balls, Toast.LENGTH_LONG).show();
 	           mDispencer.deserialize(next_balls);
 	           
-	           setScore(settings.getInt(STATE_SCORE_KEY, 0));
-	           
-	           setZoomMode(true);//settings.getBoolean(STATE_ZOOM_KEY, false));
+	           setScore(settings.getInt(STATE_SCORE_KEY, 0));	           
 	       } else {
 	    	   this.startGame();
 	       }
 		}
-
-	private void setZoomMode(boolean pZoomMode) {
-		this.mZoomMode = pZoomMode;
-	}
 
 	public void saveGameState(SharedPreferences settings) {
 		
@@ -434,7 +404,6 @@ public class GameLogic implements IGameEvent {
 		  String next_balls = mDispencer.serialize();
 		  editor.putString(STATE_NEXT_BALLS_KEY, next_balls);
 		  editor.putInt(STATE_SCORE_KEY, mScore);
-		  editor.putBoolean(STATE_ZOOM_KEY, mZoomMode);
 		  // Commit the edits!
 		  editor.commit();
 	}

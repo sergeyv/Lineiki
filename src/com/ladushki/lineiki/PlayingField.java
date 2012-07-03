@@ -3,62 +3,33 @@
  */
 package com.ladushki.lineiki;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Random;
-
 import javax.microedition.khronos.opengles.GL10;
 
 import org.anddev.andengine.entity.Entity;
 import org.anddev.andengine.entity.IEntity;
 import org.anddev.andengine.entity.modifier.AlphaModifier;
 import org.anddev.andengine.entity.modifier.DelayModifier;
-import org.anddev.andengine.entity.modifier.FadeInModifier;
-import org.anddev.andengine.entity.modifier.FadeOutModifier;
+import org.anddev.andengine.entity.modifier.IEntityModifier.IEntityModifierListener;
 import org.anddev.andengine.entity.modifier.LoopEntityModifier;
-import org.anddev.andengine.entity.modifier.MoveModifier;
 import org.anddev.andengine.entity.modifier.ParallelEntityModifier;
-import org.anddev.andengine.entity.modifier.PathModifier;
-import org.anddev.andengine.entity.modifier.RotationByModifier;
 import org.anddev.andengine.entity.modifier.RotationModifier;
 import org.anddev.andengine.entity.modifier.ScaleModifier;
 import org.anddev.andengine.entity.modifier.SequenceEntityModifier;
-import org.anddev.andengine.entity.modifier.IEntityModifier.IEntityModifierListener;
-import org.anddev.andengine.entity.modifier.LoopEntityModifier.ILoopEntityModifierListener;
-import org.anddev.andengine.entity.modifier.PathModifier.IPathModifierListener;
-import org.anddev.andengine.entity.modifier.PathModifier.Path;
-import org.anddev.andengine.entity.scene.Scene;
 import org.anddev.andengine.entity.scene.Scene.ITouchArea;
-import org.anddev.andengine.entity.shape.RectangularShape;
-import org.anddev.andengine.entity.shape.Shape;
-import org.anddev.andengine.entity.sprite.AnimatedSprite;
-import org.anddev.andengine.entity.sprite.BaseSprite;
 import org.anddev.andengine.entity.sprite.Sprite;
-import org.anddev.andengine.entity.text.ChangeableText;
-import org.anddev.andengine.entity.text.Text;
 import org.anddev.andengine.input.touch.TouchEvent;
-import org.anddev.andengine.opengl.texture.region.TiledTextureRegion;
-import org.anddev.andengine.util.Debug;
 import org.anddev.andengine.util.modifier.IModifier;
-import org.anddev.andengine.util.modifier.LoopModifier;
 import org.anddev.andengine.util.modifier.ease.EaseCubicInOut;
-import org.anddev.andengine.util.modifier.ease.EaseElasticInOut;
-import org.anddev.andengine.util.modifier.ease.EaseSineInOut;
 
-import android.app.Activity;
-import android.app.Notification;
-import android.app.NotificationManager;
 import android.content.Context;
 import android.graphics.Point;
 import android.os.Vibrator;
-import android.widget.Toast;
 
 /**
  * @author sergey
  *
  */
-public class PlayingField extends Entity implements ITouchArea {
-	
+public class PlayingField extends Entity {	
 	final int FIELD_WIDTH = 9;
 	final int FIELD_HEIGHT = 9;
 
@@ -149,19 +120,34 @@ public class PlayingField extends Entity implements ITouchArea {
 		return false;
 	}
 
-	public boolean onAreaTouched(final TouchEvent pSceneTouchEvent, final float pTouchAreaLocalX, final float pTouchAreaLocalY) {
+	/*public boolean onAreaTouched(final TouchEvent pSceneTouchEvent, final float pTouchAreaLocalX, final float pTouchAreaLocalY) {
 		
-		int tile_size = mTextureProvider.getTileSize();
-		if (pSceneTouchEvent.getAction() == TouchEvent.ACTION_DOWN) {
+		
+		if (pSceneTouchEvent.getPointerID() != 0) {
+			return false;
+		}
+		
+		if (pSceneTouchEvent.isActionUp()) {
+			int tile_size = mTextureProvider.getTileSize();
 			final int x = (int) (pTouchAreaLocalX / tile_size);
 			final int y = (int) (pTouchAreaLocalY  / tile_size);
 			mEvent.onTileTouched(x,y);
 			
 			mLastTouch.x = x * mTextureProvider.getTileSize();
 			mLastTouch.y = y * mTextureProvider.getTileSize();
-			return true;
+			return false;
 		}
 		return false;
+	}*/
+	
+	public void onTouch(float pX, float pY) {
+		int tile_size = mTextureProvider.getTileSize();
+		final int x = (int) (pX / tile_size);
+		final int y = (int) (pY  / tile_size);
+		mEvent.onTileTouched(x,y);
+		
+		mLastTouch.x = x * mTextureProvider.getTileSize();
+		mLastTouch.y = y * mTextureProvider.getTileSize();
 	}
 
 	public void setEvent(IGameEvent pEvent) {
@@ -314,7 +300,6 @@ public class PlayingField extends Entity implements ITouchArea {
 					public void onModifierFinished(
 							IModifier<IEntity> pModifier, IEntity pItem) {
 						
-						final IEntity item = pItem;
 						mParentActivity.runOnUpdateThread(new Runnable() {
 							public void run() {
 								tile.setBall(null);
@@ -511,6 +496,7 @@ public class PlayingField extends Entity implements ITouchArea {
 				new ScaleModifier(1.0f, 1.5f, 1.0f, EaseCubicInOut.getInstance())
 				);
 	}
+
 	
 	/*
 	private void flash_red_led()
