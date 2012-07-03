@@ -464,12 +464,25 @@ public class LineikiActivity
             this.mPinchZoomStartedCameraZoomFactor = this.mCamera.getZoomFactor();
     }
 
+    private float limitZoom(float pZoomFactor) {
+    	/* restricts zoom to 1.0..2.0 range */
+    	float zoom = this.mPinchZoomStartedCameraZoomFactor * pZoomFactor;
+    	if (zoom < 1.0f) {
+    		return 1.0f;
+    	}
+    	if (zoom > 2.0f) {
+    		return 2.0f;
+    	}
+    	return zoom;
+    	
+    }
+    
     public void onPinchZoom(final PinchZoomDetector pPinchZoomDetector, final TouchEvent pTouchEvent, final float pZoomFactor) {
-            this.mCamera.setZoomFactor(this.mPinchZoomStartedCameraZoomFactor * pZoomFactor);
+            this.mCamera.setZoomFactor(this.limitZoom(pZoomFactor));
     }
 
     public void onPinchZoomFinished(final PinchZoomDetector pPinchZoomDetector, final TouchEvent pTouchEvent, final float pZoomFactor) {
-            this.mCamera.setZoomFactor(this.mPinchZoomStartedCameraZoomFactor * pZoomFactor);
+            this.mCamera.setZoomFactor(this.limitZoom(pZoomFactor));
     }
 
 	public void onClick(ClickDetector pClickDetector, TouchEvent pTouchEvent) {
