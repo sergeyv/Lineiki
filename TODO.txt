@@ -4,5 +4,17 @@ TODO:
 - Game over
 + store state
 - store highscores
-- zoom
++ zoom
 + indicate when ball can not be moved
+
+- score
+-- more points for longer lines
+-- (slightly) more points for diagonals
+-- more points for 'combos', i.e. multiple lines one after another 
+
+
+LATER:
+======
+
+- global scoreboard (store highscores on internet)
+- share (twitter/facebook)

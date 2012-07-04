@@ -14,6 +14,8 @@ public interface ITextureProvider {
 	
 	public TiledTextureRegion getDigitsTexture();
 	
+	public TextureRegion getHighscoreReachedTexture();
+	
 	public	 int getTileSize();
 
 }

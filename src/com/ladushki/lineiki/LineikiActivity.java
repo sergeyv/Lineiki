@@ -92,6 +92,8 @@ public class LineikiActivity
 	private TextureRegion mMenuNewGame;
 	private TextureRegion mMenuUndo;
 	private TextureRegion mMenuQuit;
+	private TextureRegion mHighscoreReached;
+	
 	private Scene mMainScene;
 	private MenuScene mMenuScene;
 	private HUD mHUD;
@@ -211,6 +213,8 @@ public class LineikiActivity
 		mMenuUndo = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "menu_undo.svg", 200, 50);
 		mMenuQuit = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "menu_quit.svg", 200, 50);
 
+		mHighscoreReached = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "tada.svg", 128, 32);
+
 		mScoreFieldBackground = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "score_bg.svg", tile_size, tile_size);
 		mScoreDigits = SVGBitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(mBuildableBitmapTextureAtlas, this, "digits.svg", tile_size*12, tile_size, 12, 1);
 		
@@ -238,9 +242,13 @@ public class LineikiActivity
 		mHUD.attachChild(disp);
 				
 		final ScoreDisplay score = new ScoreDisplay(this, 3);
-		score.setPosition(getTileSize()*3, getTileSize()*11);
+		score.setPosition(getTileSize()*5, getTileSize()*11);
 		mHUD.attachChild(score);
-		
+
+		final ScoreDisplay highscore = new ScoreDisplay(this, 3);
+		highscore.setPosition(getTileSize()*1, getTileSize()*11);
+		mHUD.attachChild(highscore);
+
 		/// main scene
 		this.mMainScene = new Scene();
 				
@@ -253,7 +261,7 @@ public class LineikiActivity
 		//mMainScene.setTouchAreaBindingEnabled(true);
 		
 		mGameLogic = new GameLogic(mPlayingField, disp);
-		mGameLogic.setScoreDisplay(score);
+		mGameLogic.setScoreDisplay(score, highscore);
 		
 		mPlayingField.setEvent(mGameLogic);
 		
@@ -409,6 +417,10 @@ public class LineikiActivity
 	public TextureRegion getSquareMarkerTexture() {
 		return mSquareMarkerRegion;
 	}
+	
+	public TextureRegion getHighscoreReachedTexture() {
+		return mHighscoreReached;
+	}
 
 	public void onSaveInstanceState(Bundle outBundle) {
 		/* Invoked when the activity needs to be destroyed and re-created
@@ -485,24 +497,8 @@ public class LineikiActivity
             this.mCamera.setZoomFactor(this.limitZoom(pZoomFactor));
     }
 
-	public void onClick(ClickDetector pClickDetector, TouchEvent pTouchEvent) {
-		/*Toast.makeText(
-				this,
-				"CLICK", 
-				//String.format("ACTION: %d", pSceneTouchEvent.getPointerID()),
-				Toast.LENGTH_SHORT).show();*/
-		
+	public void onClick(ClickDetector pClickDetector, TouchEvent pTouchEvent) {		
 		float[] coords = this.mPlayingField.convertSceneToLocalCoordinates(pTouchEvent.getX(), pTouchEvent.getY());
 		mPlayingField.onTouch(coords[0], coords[1]);
 	}
-
-    
-	/*@Override
-	public boolean onSceneTouchEvent(Scene pScene, TouchEvent pSceneTouchEvent) {
-		//this.mScrollDetector.onTouchEvent(pSceneTouchEvent);
-		final AnimatedSprite ball = new AnimatedSprite(pSceneTouchEvent.getX(), pSceneTouchEvent.getY(), this.mTextureRegion);
-		pScene.attachChild(ball);
-
-		return true;
-	}*/
 }

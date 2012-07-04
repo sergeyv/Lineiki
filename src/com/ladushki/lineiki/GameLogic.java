@@ -23,6 +23,7 @@ public class GameLogic implements IGameEvent {
 	private static final String STATE_FIELD_KEY = "PLAYING_FIELD";
 	private static final String STATE_NEXT_BALLS_KEY = "NEXT_BALLS";
 	private static final String STATE_SCORE_KEY = "SCORE";
+	private static final String STATE_HIGH_SCORE_KEY = "HIGHSCORE";
 
 
 	GameState mGameState;
@@ -34,12 +35,15 @@ public class GameLogic implements IGameEvent {
 
 	private ScoreDisplay mScoreDisplay;
 	private int mScore;
+	private int mLocalHighScore;
+	boolean mHighScoreReachedAnimationShown;
 
 	Point mSelectedSource;
 	Point mSelectedDestination;
 	
 	HistoryStep mUndoState;
 	boolean mCanUndo;
+	private ScoreDisplay mHighScoreDisplay;
 
 
 	public GameLogic(PlayingField pPlayingField, BallDispencer pDispencer) {
@@ -92,6 +96,10 @@ public class GameLogic implements IGameEvent {
 	private void gameOver() {
 		mGameState = GameState.GAME_OVER;
 		//TODO: add some animation and stuff
+		
+		if (mScore > mLocalHighScore) {
+			mLocalHighScore = mScore;
+		}
 	}
 
 	private boolean moveBall(Point pSource, Point pDest) {
@@ -231,6 +239,7 @@ public class GameLogic implements IGameEvent {
 			}
 		}
 
+		//int delay = 0;
 		/// check diagonals (top-left to bottom-right)
 		for (int j = 0; j < mPlayingField.FIELD_WIDTH; j++) {
 			checker.startRow();
@@ -240,10 +249,15 @@ public class GameLogic implements IGameEvent {
 				if (x < 0) continue;
 				if (x >= mPlayingField.FIELD_WIDTH) continue;
 				
+				//mPlayingField.getTileAt(x, y).blink(delay);
+				//delay += 1;
+
 				final BallColor color = mPlayingField.getBallColorAt(x, y);
 				checker.check(color, x, y);
 			}
 		}
+		checker.startRow(); // flush the last line
+
 
 		FieldItem[] tiles_to_remove = checker.getMatchedTiles();
 		
@@ -263,21 +277,33 @@ public class GameLogic implements IGameEvent {
 	}
 
 	
-	public void setScoreDisplay(ScoreDisplay pScore) {
+	public void setScoreDisplay(ScoreDisplay pScore, ScoreDisplay pHighScore) {
 		this.mScoreDisplay = pScore;
 		this.mScoreDisplay.setScore(0);
+		
+		this.mHighScoreDisplay = pHighScore;
+		this.mHighScoreDisplay.setScore(0);
 		
 	}
 	
 	public void setScore(int pScore) {
 		this.mScore = pScore;
 		this.mScoreDisplay.setScore(this.mScore);
+		
+		if (mScore >= mLocalHighScore && mLocalHighScore > 0 && !mHighScoreReachedAnimationShown) {
+			mHighScoreReachedAnimationShown = true;
+			mPlayingField.animateHighScoreReached();
+		}
 	}
 	
 	public void addScore(int pDelta) {
 		setScore(this.mScore + pDelta);
 	}
 
+	public void setHighScore(int pScore) {
+		this.mLocalHighScore = pScore;
+		this.mHighScoreDisplay.setScore(this.mLocalHighScore);		
+	}
 	
 	public void onTileTouched(int x, int y) {
 		
@@ -351,7 +377,7 @@ public class GameLogic implements IGameEvent {
 				mPlayingField.addBall(new Point(f.mX, f.mY), f.mColor, 0);
 			}
 		}
-		/// Bove the ball back to its position
+		/// Move the ball back to its position
 		Point[] path = findPath(mUndoState.mDest, mUndoState.mSource);
 		
 		mPlayingField.animateMovingBall(mUndoState.mDest, mUndoState.mSource, path,
@@ -365,27 +391,30 @@ public class GameLogic implements IGameEvent {
 	}
 	
 	public void loadGameState(SharedPreferences settings) {
-	       
-	       // check if the config had been created with the same version of the app
-	       // if yes then we can assume all the data is in a proper format
-	       int config_version = settings.getInt(STATE_VERSION_KEY, 0);
-	       if (config_version == STATE_VERSION) {
-	    	   
-	    	   initGame();
-	    	   
-	    	   String field = settings.getString(STATE_FIELD_KEY, null);
-	    	   //Toast.makeText(this, field, Toast.LENGTH_LONG).show();
-	           mPlayingField.deserialize(field);
-	           
-	    	   String next_balls = settings.getString(STATE_NEXT_BALLS_KEY, null);
-	    	   //Toast.makeText(this, next_balls, Toast.LENGTH_LONG).show();
-	           mDispencer.deserialize(next_balls);
-	           
-	           setScore(settings.getInt(STATE_SCORE_KEY, 0));	           
-	       } else {
-	    	   this.startGame();
-	       }
-		}
+
+		
+		this.setHighScore(4); //settings.getInt(STATE_HIGH_SCORE_KEY, 0);
+
+        // check if the config had been created with the same version of the app
+        // if yes then we can assume all the data is in a proper format
+        int config_version = settings.getInt(STATE_VERSION_KEY, 0);
+        if (config_version == STATE_VERSION) {
+    	   
+    	    initGame();
+    	   
+    	    String field = settings.getString(STATE_FIELD_KEY, null);
+    	    //Toast.makeText(this, field, Toast.LENGTH_LONG).show();
+            mPlayingField.deserialize(field);
+           
+    	    String next_balls = settings.getString(STATE_NEXT_BALLS_KEY, null);
+    	    //Toast.makeText(this, next_balls, Toast.LENGTH_LONG).show();
+            mDispencer.deserialize(next_balls);
+           
+           setScore(settings.getInt(STATE_SCORE_KEY, 0));	           
+        } else {
+     	   this.startGame();
+        }
+	}
 
 	public void saveGameState(SharedPreferences settings) {
 		
@@ -404,6 +433,8 @@ public class GameLogic implements IGameEvent {
 		  String next_balls = mDispencer.serialize();
 		  editor.putString(STATE_NEXT_BALLS_KEY, next_balls);
 		  editor.putInt(STATE_SCORE_KEY, mScore);
+		  editor.putInt(STATE_HIGH_SCORE_KEY, mLocalHighScore);
+		  
 		  // Commit the edits!
 		  editor.commit();
 	}
