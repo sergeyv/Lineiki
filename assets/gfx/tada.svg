@@ -14,7 +14,7 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.48.3.1 r9886"
-   sodipodi:docname="New document 1">
+   sodipodi:docname="tada.svg">
   <defs
      id="defs4" />
   <sodipodi:namedview
@@ -43,7 +43,6 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -52,17 +51,29 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(0,-1020.3622)">
-    <text
-       xml:space="preserve"
-       style="font-size:34.64490891px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
-       x="7.2420955"
-       y="1048.9495"
-       id="text2985"
-       sodipodi:linespacing="125%"><tspan
-         sodipodi:role="line"
-         id="tspan2987"
-         x="7.2420955"
-         y="1048.9495"
-         style="font-weight:bold;fill:#ffffff;stroke:#000000;stroke-width:0.86612272;-inkscape-font-specification:Sans Bold">TADA!</tspan></text>
+    <g
+       style="font-size:34.64490890999999806px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Sans"
+       id="text2985">
+      <path
+         d="m 7.4112601,1023.6932 23.2770479,0 0,4.9227 -8.373647,0 0,20.3336 -6.512837,0 0,-20.3336 -8.3905639,0 0,-4.9227"
+         style="font-weight:bold;stroke:#000000;stroke-width:0.86612272000000001;-inkscape-font-specification:Sans Bold;fill:#ffffff"
+         id="path3031" />
+      <path
+         d="m 46.657445,1044.3482 -10.183709,0 -1.607063,4.6013 -6.54667,0 9.354802,-25.2563 7.764655,0 9.354802,25.2563 -6.54667,0 -1.590147,-4.6013 m -8.559728,-4.6859 6.918831,0 -3.450957,-10.0484 -3.467874,10.0484"
+         style="font-weight:bold;stroke:#000000;stroke-width:0.86612272000000001;-inkscape-font-specification:Sans Bold;fill:#ffffff"
+         id="path3033" />
+      <path
+         d="m 64.639641,1028.6159 0,15.4109 2.334471,0 c 2.661509,0 4.691482,-0.6598 6.089926,-1.9793 1.409685,-1.3194 2.114537,-3.2366 2.114557,-5.7515 -2e-5,-2.5037 -0.699233,-4.4096 -2.097641,-5.7178 -1.398444,-1.3082 -3.434056,-1.9623 -6.106842,-1.9623 l -2.334471,0 m -6.512837,-4.9227 6.868083,0 c 3.834383,0 6.687623,0.2763 8.559728,0.8289 1.883346,0.5413 3.496046,1.4661 4.838108,2.7743 1.184127,1.1391 2.063782,2.4529 2.638967,3.9415 0.575133,1.4887 0.862713,3.1747 0.86274,5.0581 -2.7e-5,1.9059 -0.287607,3.6088 -0.86274,5.1087 -0.575185,1.4887 -1.45484,2.8025 -2.638967,3.9416 -1.353339,1.3082 -2.977318,2.2386 -4.871941,2.7912 -1.89466,0.5413 -4.736622,0.812 -8.525895,0.812 l -6.868083,0 0,-25.2563"
+         style="font-weight:bold;stroke:#000000;stroke-width:0.86612272000000001;-inkscape-font-specification:Sans Bold;fill:#ffffff"
+         id="path3035" />
+      <path
+         d="m 102.2111,1044.3482 -10.183712,0 -1.607063,4.6013 -6.54667,0 9.354802,-25.2563 7.764653,0 9.3548,25.2563 -6.54667,0 -1.59014,-4.6013 m -8.559732,-4.6859 6.918832,0 -3.450957,-10.0484 -3.467875,10.0484"
+         style="font-weight:bold;stroke:#000000;stroke-width:0.86612272000000001;-inkscape-font-specification:Sans Bold;fill:#ffffff"
+         id="path3037" />
+      <path
+         d="m 115.35518,1023.6932 6.08993,0 0,9.6931 -0.86274,7.0711 -4.36445,0 -0.86274,-7.0711 0,-9.6931 m 0,19.234 6.08993,0 0,6.0223 -6.08993,0 0,-6.0223"
+         style="font-weight:bold;stroke:#000000;stroke-width:0.86612272000000001;-inkscape-font-specification:Sans Bold;fill:#ffffff"
+         id="path3039" />
+    </g>
   </g>
 </svg>

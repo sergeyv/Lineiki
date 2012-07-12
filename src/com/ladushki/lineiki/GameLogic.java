@@ -100,6 +100,9 @@ public class GameLogic implements IGameEvent {
 		if (mScore > mLocalHighScore) {
 			mLocalHighScore = mScore;
 		}
+		
+		// TODO: ugly
+		mPlayingField.mParentActivity.showGameOverScreen();
 	}
 
 	private boolean moveBall(Point pSource, Point pDest) {
@@ -132,7 +135,7 @@ public class GameLogic implements IGameEvent {
 						}
 						setCanUndo(true);
 						GameLogic.this.mGameState = GameState.SELECT_BALL;
-						
+						gameOver();
 					}
 			
 		});
@@ -393,7 +396,7 @@ public class GameLogic implements IGameEvent {
 	public void loadGameState(SharedPreferences settings) {
 
 		
-		this.setHighScore(4); //settings.getInt(STATE_HIGH_SCORE_KEY, 0);
+		this.setHighScore(settings.getInt(STATE_HIGH_SCORE_KEY, 0));
 
         // check if the config had been created with the same version of the app
         // if yes then we can assume all the data is in a proper format

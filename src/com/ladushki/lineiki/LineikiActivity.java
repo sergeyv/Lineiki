@@ -8,13 +8,25 @@ import org.anddev.andengine.engine.camera.hud.HUD;
 import org.anddev.andengine.engine.options.EngineOptions;
 import org.anddev.andengine.engine.options.EngineOptions.ScreenOrientation;
 import org.anddev.andengine.engine.options.resolutionpolicy.RatioResolutionPolicy;
+import org.anddev.andengine.entity.IEntity;
+import org.anddev.andengine.entity.modifier.AlphaModifier;
+import org.anddev.andengine.entity.modifier.MoveXModifier;
+import org.anddev.andengine.entity.modifier.ParallelEntityModifier;
+import org.anddev.andengine.entity.modifier.ScaleModifier;
+import org.anddev.andengine.entity.modifier.SequenceEntityModifier;
+import org.anddev.andengine.entity.modifier.IEntityModifier.IEntityModifierListener;
+import org.anddev.andengine.entity.primitive.Rectangle;
+import org.anddev.andengine.entity.scene.CameraScene;
 import org.anddev.andengine.entity.scene.Scene;
+import org.anddev.andengine.entity.scene.Scene.IOnAreaTouchListener;
 import org.anddev.andengine.entity.scene.Scene.IOnSceneTouchListener;
+import org.anddev.andengine.entity.scene.Scene.ITouchArea;
 import org.anddev.andengine.entity.scene.background.ColorBackground;
 import org.anddev.andengine.entity.scene.menu.MenuScene;
 import org.anddev.andengine.entity.scene.menu.MenuScene.IOnMenuItemClickListener;
 import org.anddev.andengine.entity.scene.menu.item.IMenuItem;
 import org.anddev.andengine.entity.scene.menu.item.SpriteMenuItem;
+import org.anddev.andengine.entity.sprite.Sprite;
 import org.anddev.andengine.entity.util.FPSLogger;
 import org.anddev.andengine.extension.input.touch.controller.MultiTouch;
 import org.anddev.andengine.extension.input.touch.controller.MultiTouchController;
@@ -44,7 +56,14 @@ import org.anddev.andengine.opengl.texture.region.TextureRegion;
 import org.anddev.andengine.opengl.texture.region.TiledTextureRegion;
 import org.anddev.andengine.ui.activity.BaseGameActivity;
 import org.anddev.andengine.util.Debug;
+import org.anddev.andengine.util.modifier.IModifier;
+import org.anddev.andengine.util.modifier.ease.EaseBackIn;
+import org.anddev.andengine.util.modifier.ease.EaseBackOut;
+import org.anddev.andengine.util.modifier.ease.EaseElasticIn;
+import org.anddev.andengine.util.modifier.ease.EaseElasticOut;
+import org.anddev.andengine.util.modifier.ease.EaseSineInOut;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -92,10 +111,11 @@ public class LineikiActivity
 	private TextureRegion mMenuNewGame;
 	private TextureRegion mMenuUndo;
 	private TextureRegion mMenuQuit;
-	private TextureRegion mHighscoreReached;
+	private TextureRegion mHighScoreReached;
 	
 	private Scene mMainScene;
 	private MenuScene mMenuScene;
+	//private Scene mGameOverScene;
 	private HUD mHUD;
 	
 	private int mScreenWidth;
@@ -105,9 +125,7 @@ public class LineikiActivity
 	private TiledTextureRegion mScoreDigits;
 	private TextureRegion mBallMarkerRegion;
 	private TextureRegion mSquareMarkerRegion;
-	
-	
-	private HoldDetector mHold;
+		
 	private SurfaceScrollDetector mScrollDetector;
 	private PinchZoomDetector mPinchZoomDetector;
 	private ClickDetector mClickDetector;
@@ -148,25 +166,7 @@ public class LineikiActivity
 						mScreenWidth, mScreenHeight), this.mCamera);
 
 			engineOptions.setNeedsSound(true);
-			engineOptions.setNeedsMusic(true);
-
-
-			
-			
-		mHold = new HoldDetector(new IHoldDetectorListener() {
-		        
-		        public void onHoldFinished(HoldDetector pHoldDetector,
-		                        long pHoldTimeMilliseconds, float pHoldX, float pHoldY) {
-		                Toast.makeText(LineikiActivity.this, "HOLD FINISHED", Toast.LENGTH_SHORT).show();
-		        }
-		       
-		        public void onHold(HoldDetector pHoldDetector, long pHoldTimeMilliseconds,
-		                        float pHoldX, float pHoldY) {
-		                //mShoot = false;
-	                //Toast.makeText(getBaseContext(), "HOLD " + pHoldTimeMilliseconds, Toast.LENGTH_SHORT).show();
-		        }
-		});
-		
+			engineOptions.setNeedsMusic(true);		
 		
 		Engine engine = new Engine(engineOptions);
 		
@@ -209,11 +209,11 @@ public class LineikiActivity
 		mBallMarkerRegion = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "selected_ball.svg", tile_size, tile_size);
 		mSquareMarkerRegion = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "selected_square.svg", tile_size, tile_size);
 		
-		mMenuNewGame = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "menu_new_game.svg", 200, 50);
-		mMenuUndo = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "menu_undo.svg", 200, 50);
-		mMenuQuit = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "menu_quit.svg", 200, 50);
+		mMenuNewGame = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "menu_new_game.svg", tile_size*4, tile_size);
+		mMenuUndo = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "menu_undo.svg", tile_size*4, tile_size);
+		mMenuQuit = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "menu_quit.svg", tile_size*4, tile_size);
 
-		mHighscoreReached = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "tada.svg", 128, 32);
+		mHighScoreReached = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "tada.svg", 128, 32);
 
 		mScoreFieldBackground = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "score_bg.svg", tile_size, tile_size);
 		mScoreDigits = SVGBitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(mBuildableBitmapTextureAtlas, this, "digits.svg", tile_size*12, tile_size, 12, 1);
@@ -232,11 +232,14 @@ public class LineikiActivity
 		
 		/// menu
 		this.createMenuScene();
+		
+		/// game over
+		this.createGameOverScene();
 
 		// HUD
 		this.mHUD = new HUD();
 		mCamera.setHUD(this.mHUD);
-
+		
 		final BallDispencer disp = new BallDispencer(this);
 		disp.setPosition(mLeftBorder + getTileSize()*3, getTileSize()*0.2f);
 		mHUD.attachChild(disp);
@@ -256,6 +259,7 @@ public class LineikiActivity
 		
 		this.mPlayingField = new PlayingField(this, this);
 		mPlayingField.setPosition(mLeftBorder, getTileSize()*1.4f);
+		
 		mMainScene.attachChild(mPlayingField);
 		//mMainScene.registerTouchArea(field);	
 		//mMainScene.setTouchAreaBindingEnabled(true);
@@ -265,8 +269,8 @@ public class LineikiActivity
 		
 		mPlayingField.setEvent(mGameLogic);
 		
-        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-		
+		// prefs
+        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);		
 		mGameLogic.loadGameState(settings);
 		
 		// click
@@ -292,7 +296,100 @@ public class LineikiActivity
 		return mMainScene;
 	}
 
+	private Scene createGameOverScene() {
+		final Scene scene = new MenuScene(this.mCamera);
+		scene.setBackgroundEnabled(false);
+		
+		
+		/*final SpriteMenuItem resetMenuItem = new SpriteMenuItem(MENU_RESET, this.mMenuNewGame);
+		resetMenuItem.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
+		this.mMenuScene.addMenuItem(resetMenuItem);*/
+
+		//mGameOverScene.setBackground(new ColorBackground(0.5f, 0.1f, 0.1f, 0.5f));
+		
+		Rectangle r = new Rectangle(0, 0, mScreenWidth, mScreenHeight);
+		r.setColor(0, 0, 0, 0.0f);
+		r.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
+		r.registerEntityModifier(new AlphaModifier(1.0f, 0.0f, 0.5f));
+
+		scene.attachChild(r);
+		int w = this.getTileSize();
+
+		Sprite p = new Sprite(w*4.5f, w*4.5f, this.getHighscoreReachedTexture());
+		scene.attachChild(p);
+		
+		p.registerEntityModifier(new ParallelEntityModifier(
+				new IEntityModifierListener() {
+
+					public void onModifierStarted(IModifier<IEntity> pModifier,
+							IEntity pItem) {
+					}
+
+					public void onModifierFinished(
+							IModifier<IEntity> pModifier, IEntity pItem) {
+
+						final IEntity item = pItem;
+						LineikiActivity.this.runOnUpdateThread(new Runnable() {
+							public void run() {
+								scene.detachChild(item);
+							}
+						});
+					}
+				},
+
+				new ScaleModifier(2.0f, 1, 3),
+				new AlphaModifier(2.0f, 0.6f, 0.0f)
+		));
+		
+		final Sprite newGame = new Sprite(w*2.5f, w*4.5f, this.mMenuNewGame);
+		scene.attachChild(newGame);
+		scene.registerTouchArea(newGame);	
+		scene.setTouchAreaBindingEnabled(true);
+		scene.setOnAreaTouchListener(new IOnAreaTouchListener() {
+
+			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
+					ITouchArea pTouchArea, float pTouchAreaLocalX,
+					float pTouchAreaLocalY) {
+				
+				mGameLogic.startGame();
+				LineikiActivity.this.hideGameOverScreen();
+				scene.back();
+				return false;
+			}
+		});
+		return scene;
+	}
 	
+	
+	public void showGameOverScreen() {
+		Scene gameover = this.createGameOverScene();
+		mMainScene.setChildScene(gameover, false, true, true);
+		//mCamera.setHUD(null);
+		gameover.setScaleCenter(mScreenWidth/2, mScreenHeight/2);
+		gameover.registerEntityModifier(
+				new ScaleModifier(2.0f, 0.0f, 1.0f, EaseSineInOut.getInstance())
+				);
+		
+		//mHUD.setScaleCenter(mScreenWidth/2, mScreenHeight/2);
+		mHUD.registerEntityModifier(
+				new MoveXModifier(1.0f, 0.0f, mScreenWidth, EaseBackIn.getInstance())
+				);
+		
+		/*mPlayingField.registerEntityModifier(
+				new ScaleModifier(0.4f, 1.0f, 0.7f, EaseBackOut.getInstance()) 
+				);*/
+
+	}
+
+	public void hideGameOverScreen() {
+		mMainScene.clearChildScene();
+		//mHUD.registerEntityModifier(new ScaleModifier(2.0f, 0.0f, 1.0f));
+		//mCamera.setHUD(mHUD);
+		mHUD.registerEntityModifier(
+				new MoveXModifier(1.0f, -mScreenWidth, 0.0f, EaseBackOut.getInstance())
+				);
+	}
+
 	public TiledTextureRegion getBallTexture() {
 		return mBallTextureRegion;
 	}
@@ -348,6 +445,12 @@ public class LineikiActivity
 
 	protected void createMenuScene() {
 		this.mMenuScene = new MenuScene(this.mCamera);
+		
+		Rectangle r = new Rectangle(0, 0, mScreenWidth, mScreenHeight);
+		r.setColor(0, 0, 0, 0.0f);
+		r.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
+		r.registerEntityModifier(new AlphaModifier(1.0f, 0.0f, 0.5f));
+		mMenuScene.attachChild(r);
 
 		final SpriteMenuItem resetMenuItem = new SpriteMenuItem(MENU_RESET, this.mMenuNewGame);
 		resetMenuItem.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
@@ -419,7 +522,7 @@ public class LineikiActivity
 	}
 	
 	public TextureRegion getHighscoreReachedTexture() {
-		return mHighscoreReached;
+		return mHighScoreReached;
 	}
 
 	public void onSaveInstanceState(Bundle outBundle) {

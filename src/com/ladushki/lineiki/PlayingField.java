@@ -54,6 +54,9 @@ public class PlayingField extends Entity {
 
 		mLastTouch = new Point();
 
+		this.setScaleCenter(FIELD_WIDTH * mTextureProvider.getTileSize() / 2,
+				FIELD_HEIGHT * mTextureProvider.getTileSize() / 2);
+
 		initBackground();
 		initBallMarker();
 		initSquareMarker();
@@ -396,8 +399,6 @@ public class PlayingField extends Entity {
 			}
 		}
 
-		this.setScaleCenter(FIELD_WIDTH * mTextureProvider.getTileSize() / 2,
-				FIELD_HEIGHT * mTextureProvider.getTileSize() / 2);
 		this.registerEntityModifier(new SequenceEntityModifier(
 				new IEntityModifierListener() {
 
