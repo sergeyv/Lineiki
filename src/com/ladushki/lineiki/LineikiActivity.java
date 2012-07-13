@@ -10,13 +10,11 @@ import org.anddev.andengine.engine.options.EngineOptions.ScreenOrientation;
 import org.anddev.andengine.engine.options.resolutionpolicy.RatioResolutionPolicy;
 import org.anddev.andengine.entity.IEntity;
 import org.anddev.andengine.entity.modifier.AlphaModifier;
+import org.anddev.andengine.entity.modifier.IEntityModifier.IEntityModifierListener;
 import org.anddev.andengine.entity.modifier.MoveXModifier;
 import org.anddev.andengine.entity.modifier.ParallelEntityModifier;
 import org.anddev.andengine.entity.modifier.ScaleModifier;
-import org.anddev.andengine.entity.modifier.SequenceEntityModifier;
-import org.anddev.andengine.entity.modifier.IEntityModifier.IEntityModifierListener;
 import org.anddev.andengine.entity.primitive.Rectangle;
-import org.anddev.andengine.entity.scene.CameraScene;
 import org.anddev.andengine.entity.scene.Scene;
 import org.anddev.andengine.entity.scene.Scene.IOnAreaTouchListener;
 import org.anddev.andengine.entity.scene.Scene.IOnSceneTouchListener;
@@ -37,8 +35,6 @@ import org.anddev.andengine.extension.svg.opengl.texture.atlas.bitmap.SVGBitmapT
 import org.anddev.andengine.input.touch.TouchEvent;
 import org.anddev.andengine.input.touch.detector.ClickDetector;
 import org.anddev.andengine.input.touch.detector.ClickDetector.IClickDetectorListener;
-import org.anddev.andengine.input.touch.detector.HoldDetector;
-import org.anddev.andengine.input.touch.detector.HoldDetector.IHoldDetectorListener;
 import org.anddev.andengine.input.touch.detector.ScrollDetector;
 import org.anddev.andengine.input.touch.detector.ScrollDetector.IScrollDetectorListener;
 import org.anddev.andengine.input.touch.detector.SurfaceScrollDetector;
@@ -59,11 +55,8 @@ import org.anddev.andengine.util.Debug;
 import org.anddev.andengine.util.modifier.IModifier;
 import org.anddev.andengine.util.modifier.ease.EaseBackIn;
 import org.anddev.andengine.util.modifier.ease.EaseBackOut;
-import org.anddev.andengine.util.modifier.ease.EaseElasticIn;
-import org.anddev.andengine.util.modifier.ease.EaseElasticOut;
 import org.anddev.andengine.util.modifier.ease.EaseSineInOut;
 
-import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -90,8 +83,6 @@ public class LineikiActivity
 	protected static final int MENU_RESET = 0;
 	protected static final int MENU_UNDO = 1;
 	protected static final int MENU_QUIT = 2;
-
-	private static final int COUNT = 0;
 	
 	private static final String PREFS_NAME = "LineikiPrefsFile";
 
@@ -297,7 +288,7 @@ public class LineikiActivity
 	}
 
 	private Scene createGameOverScene() {
-		final Scene scene = new MenuScene(this.mCamera);
+		final MenuScene scene = new MenuScene(this.mCamera);
 		scene.setBackgroundEnabled(false);
 		
 		
@@ -315,7 +306,22 @@ public class LineikiActivity
 		scene.attachChild(r);
 		int w = this.getTileSize();
 
-		Sprite p = new Sprite(w*4.5f, w*4.5f, this.getHighscoreReachedTexture());
+		
+		final SpriteMenuItem resetMenuItem = new SpriteMenuItem(MENU_RESET, this.mMenuNewGame);
+		resetMenuItem.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
+		scene.addMenuItem(resetMenuItem);
+
+		final SpriteMenuItem quitMenuItem = new SpriteMenuItem(MENU_QUIT, this.mMenuQuit);
+		quitMenuItem.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
+		scene.addMenuItem(quitMenuItem);
+
+		scene.buildAnimations();
+
+		scene.setBackgroundEnabled(false);
+
+		scene.setOnMenuItemClickListener(this);
+
+		/*Sprite p = new Sprite(w*4.5f, w*4.5f, this.getHighscoreReachedTexture());
 		scene.attachChild(p);
 		
 		p.registerEntityModifier(new ParallelEntityModifier(
@@ -340,11 +346,58 @@ public class LineikiActivity
 				new ScaleModifier(2.0f, 1, 3),
 				new AlphaModifier(2.0f, 0.6f, 0.0f)
 		));
+		*/
 		
-		final Sprite newGame = new Sprite(w*2.5f, w*4.5f, this.mMenuNewGame);
-		scene.attachChild(newGame);
-		scene.registerTouchArea(newGame);	
-		scene.setTouchAreaBindingEnabled(true);
+		final Sprite newGameBtn = new Sprite(w*2.5f, w*4.5f, this.mMenuNewGame) {
+			@Override
+			public boolean onAreaTouched(final TouchEvent pSceneTouchEvent, 
+					final float pTouchAreaLocalX, 
+					final float pTouchAreaLocalY) {
+
+				LineikiActivity.this.hideGameOverScreen();
+				mGameLogic.startGame();
+				//scene.back();
+
+				/*LineikiActivity.this.runOnUpdateThread(new Runnable() {
+					public void run() {
+						
+						mGameLogic.startGame();
+						LineikiActivity.this.hideGameOverScreen();
+						scene.back();
+						
+					}
+				});*/
+				return false;				
+			}
+		};
+		//scene.attachChild(newGameBtn);
+		//scene.registerTouchArea(newGameBtn);	
+		//scene.setTouchAreaBindingEnabled(true);
+		/*newGameBtn.setOnAreaTouchListener(new IOnAreaTouchListener() {
+
+			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
+					ITouchArea pTouchArea, float pTouchAreaLocalX,
+					float pTouchAreaLocalY) {
+				
+			}
+		});*/
+		
+		
+		final Sprite quitBtn = new Sprite(w*2.5f, w*6.5f, this.mMenuQuit) {
+			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
+					float pTouchAreaLocalX,
+					float pTouchAreaLocalY) {
+				mGameLogic.startGame();
+				LineikiActivity.this.hideGameOverScreen();
+				scene.back();
+				return false;
+			}
+		};
+		//scene.attachChild(quitBtn);
+		//scene.registerTouchArea(quitBtn);	
+		
+		
+		/*scene.setTouchAreaBindingEnabled(true);
 		scene.setOnAreaTouchListener(new IOnAreaTouchListener() {
 
 			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
@@ -356,7 +409,8 @@ public class LineikiActivity
 				scene.back();
 				return false;
 			}
-		});
+		});*/
+
 		return scene;
 	}
 	
@@ -429,7 +483,7 @@ public class LineikiActivity
 	/* *** MENU STUFF *** */
 	@Override
 	public boolean onKeyDown(final int pKeyCode, final KeyEvent pEvent) {
-		if(pKeyCode == KeyEvent.KEYCODE_MENU && pEvent.getAction() == KeyEvent.ACTION_DOWN) {
+		if((pKeyCode == KeyEvent.KEYCODE_MENU || pKeyCode == KeyEvent.KEYCODE_BACK) && pEvent.getAction() == KeyEvent.ACTION_DOWN) {
 			if(this.mMainScene.hasChildScene()) {
 				/* Remove the menu and reset it. */
 				this.mMenuScene.back();
