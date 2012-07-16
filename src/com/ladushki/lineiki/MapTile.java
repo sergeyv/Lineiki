@@ -3,6 +3,8 @@
  */
 package com.ladushki.lineiki;
 
+import org.anddev.andengine.entity.Entity;
+import org.anddev.andengine.entity.IEntity;
 import org.anddev.andengine.entity.modifier.ColorModifier;
 import org.anddev.andengine.entity.modifier.DelayModifier;
 import org.anddev.andengine.entity.modifier.SequenceEntityModifier;
@@ -16,7 +18,6 @@ import org.anddev.andengine.opengl.texture.region.TiledTextureRegion;
 public class MapTile extends AnimatedSprite {
 	
 	private boolean m_bEven;
-	private BallSprite m_ball;
 
 	public MapTile(int pX, int pY, TiledTextureRegion pTiledTextureRegion, boolean pEven) {
 		super(pX, pY, pTiledTextureRegion);
@@ -57,29 +58,30 @@ public class MapTile extends AnimatedSprite {
 	}*/
 
 	void setBall(BallSprite pBall) {
-		if (m_ball != null) {
-			/// TODO: raise an error
-			//detachBall();
-		}
-		m_ball = pBall;
+		this.detachBall();
 		if (pBall != null) {
 			this.attachChild(pBall);
-		}
+		}	
 	}
 	
 	BallSprite detachBall() {
-		this.detachChild(m_ball);
-		BallSprite b = this.m_ball;
-		this.m_ball = null;
-		return b;
+		if (this.getChildCount() > 0) {
+			IEntity b = this.getFirstChild();
+			this.detachChild(b);
+			return (BallSprite)b;
+		}
+		return null;
 	}
 	
 	BallSprite getBall() {
-		return m_ball;
+		if (this.getChildCount() > 0) {
+			return (BallSprite)this.getFirstChild();
+		}
+		return null;
 	}
 	
 	boolean isOccupied() {
-		return this.m_ball != null;
+		return (this.getChildCount() > 0);
 	}
 
 

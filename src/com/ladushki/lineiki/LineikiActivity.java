@@ -103,6 +103,7 @@ public class LineikiActivity
 	private TextureRegion mMenuUndo;
 	private TextureRegion mMenuQuit;
 	private TextureRegion mHighScoreReached;
+	private TextureRegion mGameOver;
 	
 	private Scene mMainScene;
 	private MenuScene mMenuScene;
@@ -205,6 +206,7 @@ public class LineikiActivity
 		mMenuQuit = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "menu_quit.svg", tile_size*4, tile_size);
 
 		mHighScoreReached = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "tada.svg", 128, 32);
+		mGameOver = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "game_over.svg", tile_size*8, tile_size*2);
 
 		mScoreFieldBackground = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(mBuildableBitmapTextureAtlas, this, "score_bg.svg", tile_size, tile_size);
 		mScoreDigits = SVGBitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(mBuildableBitmapTextureAtlas, this, "digits.svg", tile_size*12, tile_size, 12, 1);
@@ -305,8 +307,10 @@ public class LineikiActivity
 
 		scene.attachChild(r);
 		int w = this.getTileSize();
-
 		
+		final Sprite game_over = new Sprite(w*.5f ,w*2, this.getGameOverTexture());
+		scene.attachChild(game_over);
+
 		final SpriteMenuItem resetMenuItem = new SpriteMenuItem(MENU_RESET, this.mMenuNewGame);
 		resetMenuItem.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
 		scene.addMenuItem(resetMenuItem);
@@ -348,69 +352,6 @@ public class LineikiActivity
 		));
 		*/
 		
-		final Sprite newGameBtn = new Sprite(w*2.5f, w*4.5f, this.mMenuNewGame) {
-			@Override
-			public boolean onAreaTouched(final TouchEvent pSceneTouchEvent, 
-					final float pTouchAreaLocalX, 
-					final float pTouchAreaLocalY) {
-
-				LineikiActivity.this.hideGameOverScreen();
-				mGameLogic.startGame();
-				//scene.back();
-
-				/*LineikiActivity.this.runOnUpdateThread(new Runnable() {
-					public void run() {
-						
-						mGameLogic.startGame();
-						LineikiActivity.this.hideGameOverScreen();
-						scene.back();
-						
-					}
-				});*/
-				return false;				
-			}
-		};
-		//scene.attachChild(newGameBtn);
-		//scene.registerTouchArea(newGameBtn);	
-		//scene.setTouchAreaBindingEnabled(true);
-		/*newGameBtn.setOnAreaTouchListener(new IOnAreaTouchListener() {
-
-			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
-					ITouchArea pTouchArea, float pTouchAreaLocalX,
-					float pTouchAreaLocalY) {
-				
-			}
-		});*/
-		
-		
-		final Sprite quitBtn = new Sprite(w*2.5f, w*6.5f, this.mMenuQuit) {
-			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
-					float pTouchAreaLocalX,
-					float pTouchAreaLocalY) {
-				mGameLogic.startGame();
-				LineikiActivity.this.hideGameOverScreen();
-				scene.back();
-				return false;
-			}
-		};
-		//scene.attachChild(quitBtn);
-		//scene.registerTouchArea(quitBtn);	
-		
-		
-		/*scene.setTouchAreaBindingEnabled(true);
-		scene.setOnAreaTouchListener(new IOnAreaTouchListener() {
-
-			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
-					ITouchArea pTouchArea, float pTouchAreaLocalX,
-					float pTouchAreaLocalY) {
-				
-				mGameLogic.startGame();
-				LineikiActivity.this.hideGameOverScreen();
-				scene.back();
-				return false;
-			}
-		});*/
-
 		return scene;
 	}
 	
@@ -418,27 +359,18 @@ public class LineikiActivity
 	public void showGameOverScreen() {
 		Scene gameover = this.createGameOverScene();
 		mMainScene.setChildScene(gameover, false, true, true);
-		//mCamera.setHUD(null);
 		gameover.setScaleCenter(mScreenWidth/2, mScreenHeight/2);
 		gameover.registerEntityModifier(
 				new ScaleModifier(2.0f, 0.0f, 1.0f, EaseSineInOut.getInstance())
 				);
 		
-		//mHUD.setScaleCenter(mScreenWidth/2, mScreenHeight/2);
 		mHUD.registerEntityModifier(
 				new MoveXModifier(1.0f, 0.0f, mScreenWidth, EaseBackIn.getInstance())
 				);
-		
-		/*mPlayingField.registerEntityModifier(
-				new ScaleModifier(0.4f, 1.0f, 0.7f, EaseBackOut.getInstance()) 
-				);*/
-
 	}
 
 	public void hideGameOverScreen() {
 		mMainScene.clearChildScene();
-		//mHUD.registerEntityModifier(new ScaleModifier(2.0f, 0.0f, 1.0f));
-		//mCamera.setHUD(mHUD);
 		mHUD.registerEntityModifier(
 				new MoveXModifier(1.0f, -mScreenWidth, 0.0f, EaseBackOut.getInstance())
 				);
@@ -528,12 +460,10 @@ public class LineikiActivity
 	public boolean onMenuItemClicked(final MenuScene pMenuScene, final IMenuItem pMenuItem, final float pMenuItemLocalX, final float pMenuItemLocalY) {
 		switch(pMenuItem.getID()) {
 			case MENU_RESET:
+				
+				hideGameOverScreen();
 				// Restart the animation. 
 				mGameLogic.startGame();
-
-				// Remove the menu and reset it.
-				this.mMainScene.clearChildScene();
-				this.mMenuScene.reset();
 				return true;
 			case MENU_UNDO:
 				// End Activity.
@@ -579,6 +509,10 @@ public class LineikiActivity
 		return mHighScoreReached;
 	}
 
+	public TextureRegion getGameOverTexture() {
+		return mGameOver;
+	}
+	
 	public void onSaveInstanceState(Bundle outBundle) {
 		/* Invoked when the activity needs to be destroyed and re-created
 		 * within the same process's lifecycle, i.e. when screen is rotated */
