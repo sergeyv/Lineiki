@@ -16,6 +16,8 @@ public interface ITextureProvider {
 	
 	public TextureRegion getHighscoreReachedTexture();
 	
-	public	 int getTileSize();
+	public	int getTileSize();
+	public int getScreenWidth();
+	public int getScreenHeight();
 
 }

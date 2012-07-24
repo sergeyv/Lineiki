@@ -60,6 +60,7 @@ import org.anddev.andengine.util.modifier.ease.EaseSineInOut;
 import android.app.Dialog;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.KeyEvent;
@@ -99,9 +100,9 @@ public class LineikiActivity
 	private TiledTextureRegion mBallTextureRegion;
 	private TiledTextureRegion mFieldBgTextureRegion;
 	private TextureRegion mDotTextureRegion;
-	private TextureRegion mMenuNewGame;
+	TextureRegion mMenuNewGame;
 	private TextureRegion mMenuUndo;
-	private TextureRegion mMenuQuit;
+	TextureRegion mMenuQuit;
 	private TextureRegion mHighScoreReached;
 	private TextureRegion mGameOver;
 	
@@ -123,6 +124,7 @@ public class LineikiActivity
 	private ClickDetector mClickDetector;
 	private float mPinchZoomStartedCameraZoomFactor;
 	private PlayingField mPlayingField;
+	//private ScoreDisplay mGameoverScreenScore;
 
 
 	@Override
@@ -182,12 +184,12 @@ public class LineikiActivity
 		mTextureRegion = BitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(mTexture, this, "lineiki.png", 0, 0, 10, 10);
 		mEngine.getTextureManager().loadTextures(mTexture);*/
 		
-		mFontTexture = new BitmapTextureAtlas(256, 256, TextureOptions.BILINEAR_PREMULTIPLYALPHA);
+		/*mFontTexture = new BitmapTextureAtlas(256, 256, TextureOptions.BILINEAR_PREMULTIPLYALPHA);
 
 		FontFactory.setAssetBasePath("fonts/");
 		mFont = FontFactory.createFromAsset(mFontTexture, this, "LCD.ttf", 36, true, Color.YELLOW);
 		mEngine.getTextureManager().loadTexture(mFontTexture);
-		getFontManager().loadFont(mFont);
+		getFontManager().loadFont(mFont);*/
 		
 		
 		mBuildableBitmapTextureAtlas = new BuildableBitmapTextureAtlas(1024, 1024, TextureOptions.BILINEAR_PREMULTIPLYALPHA);//
@@ -218,17 +220,21 @@ public class LineikiActivity
 		}
 
 		mEngine.getTextureManager().loadTexture(mBuildableBitmapTextureAtlas);
+		
+		/* LOAD FONT */
+		this.mFontTexture = new BitmapTextureAtlas(256, 256, TextureOptions.BILINEAR_PREMULTIPLYALPHA);
+
+		this.mFont = new Font(this.mFontTexture, 
+				Typeface.create(Typeface.DEFAULT, Typeface.BOLD), 
+				tile_size/3.0f*2, true, Color.WHITE);
+		this.mEngine.getTextureManager().loadTexture(this.mFontTexture);
+		this.getFontManager().loadFont(this.mFont);
+
 	}
 
 	public Scene onLoadScene() {
 		this.mEngine.registerUpdateHandler(new FPSLogger());
 		
-		/// menu
-		this.createMenuScene();
-		
-		/// game over
-		this.createGameOverScene();
-
 		// HUD
 		this.mHUD = new HUD();
 		mCamera.setHUD(this.mHUD);
@@ -286,81 +292,35 @@ public class LineikiActivity
         this.mMainScene.setOnSceneTouchListener(this);
         this.mMainScene.setTouchAreaBindingEnabled(true);
 
+		/// menu
+		this.createMenuScene();
+		
+		/// game over
+		//this.createGameOverScene();
+
+        
 		return mMainScene;
 	}
 
-	private Scene createGameOverScene() {
-		final MenuScene scene = new MenuScene(this.mCamera);
-		scene.setBackgroundEnabled(false);
-		
-		
-		/*final SpriteMenuItem resetMenuItem = new SpriteMenuItem(MENU_RESET, this.mMenuNewGame);
-		resetMenuItem.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
-		this.mMenuScene.addMenuItem(resetMenuItem);*/
-
-		//mGameOverScene.setBackground(new ColorBackground(0.5f, 0.1f, 0.1f, 0.5f));
-		
-		Rectangle r = new Rectangle(0, 0, mScreenWidth, mScreenHeight);
-		r.setColor(0, 0, 0, 0.0f);
-		r.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
-		r.registerEntityModifier(new AlphaModifier(1.0f, 0.0f, 0.5f));
-
-		scene.attachChild(r);
-		int w = this.getTileSize();
-		
-		final Sprite game_over = new Sprite(w*.5f ,w*2, this.getGameOverTexture());
-		scene.attachChild(game_over);
-
-		final SpriteMenuItem resetMenuItem = new SpriteMenuItem(MENU_RESET, this.mMenuNewGame);
-		resetMenuItem.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
-		scene.addMenuItem(resetMenuItem);
-
-		final SpriteMenuItem quitMenuItem = new SpriteMenuItem(MENU_QUIT, this.mMenuQuit);
-		quitMenuItem.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
-		scene.addMenuItem(quitMenuItem);
-
-		scene.buildAnimations();
-
-		scene.setBackgroundEnabled(false);
-
-		scene.setOnMenuItemClickListener(this);
-
-		/*Sprite p = new Sprite(w*4.5f, w*4.5f, this.getHighscoreReachedTexture());
-		scene.attachChild(p);
-		
-		p.registerEntityModifier(new ParallelEntityModifier(
-				new IEntityModifierListener() {
-
-					public void onModifierStarted(IModifier<IEntity> pModifier,
-							IEntity pItem) {
-					}
-
-					public void onModifierFinished(
-							IModifier<IEntity> pModifier, IEntity pItem) {
-
-						final IEntity item = pItem;
-						LineikiActivity.this.runOnUpdateThread(new Runnable() {
-							public void run() {
-								scene.detachChild(item);
-							}
-						});
-					}
-				},
-
-				new ScaleModifier(2.0f, 1, 3),
-				new AlphaModifier(2.0f, 0.6f, 0.0f)
-		));
-		*/
+	/*private Scene createGameOverScene() {
 		
 		return scene;
-	}
+	}*/
 	
 	
 	public void showGameOverScreen() {
-		Scene gameover = this.createGameOverScene();
-		mMainScene.setChildScene(gameover, false, true, true);
-		gameover.setScaleCenter(mScreenWidth/2, mScreenHeight/2);
-		gameover.registerEntityModifier(
+		final GameOverScreen scene = new GameOverScreen(
+				this.mCamera,
+				this,
+				this.mGameLogic.getScore(),
+				this.mGameLogic.getHighScore());
+		animateOverlaySceneShown(scene);
+	}
+
+	private void animateOverlaySceneShown(Scene scene) {
+		mMainScene.setChildScene(scene, false, true, true);
+		scene.setScaleCenter(mScreenWidth/2, mScreenHeight/2);
+		scene.registerEntityModifier(
 				new ScaleModifier(2.0f, 0.0f, 1.0f, EaseSineInOut.getInstance())
 				);
 		
@@ -369,7 +329,8 @@ public class LineikiActivity
 				);
 	}
 
-	public void hideGameOverScreen() {
+
+	private void animateOverlaySceneHidden() {
 		mMainScene.clearChildScene();
 		mHUD.registerEntityModifier(
 				new MoveXModifier(1.0f, -mScreenWidth, 0.0f, EaseBackOut.getInstance())
@@ -417,11 +378,9 @@ public class LineikiActivity
 	public boolean onKeyDown(final int pKeyCode, final KeyEvent pEvent) {
 		if((pKeyCode == KeyEvent.KEYCODE_MENU || pKeyCode == KeyEvent.KEYCODE_BACK) && pEvent.getAction() == KeyEvent.ACTION_DOWN) {
 			if(this.mMainScene.hasChildScene()) {
-				/* Remove the menu and reset it. */
-				this.mMenuScene.back();
+				animateOverlaySceneHidden();
 			} else {
-				/* Attach the menu. */
-				this.mMainScene.setChildScene(this.mMenuScene, false, true, true);
+				animateOverlaySceneShown(this.mMenuScene);
 			}
 			return true;
 		} else {
@@ -461,7 +420,7 @@ public class LineikiActivity
 		switch(pMenuItem.getID()) {
 			case MENU_RESET:
 				
-				hideGameOverScreen();
+			animateOverlaySceneHidden();
 				// Restart the animation. 
 				mGameLogic.startGame();
 				return true;
@@ -592,4 +551,18 @@ public class LineikiActivity
 		float[] coords = this.mPlayingField.convertSceneToLocalCoordinates(pTouchEvent.getX(), pTouchEvent.getY());
 		mPlayingField.onTouch(coords[0], coords[1]);
 	}
+
+	public int getScreenWidth() {
+		return mScreenWidth;
+	}
+
+	public int getScreenHeight() {
+		return mScreenHeight;
+	}
+
+
+	Font getFont() {
+		return mFont;
+	}
+
 }

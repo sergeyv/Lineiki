@@ -61,7 +61,6 @@ public class GameLogic implements IGameEvent {
 	}
 
 	public void startGame() {
-		
 		initGame();
 		mPlayingField.animateClear(new IAnimationListener() {
 
@@ -96,13 +95,15 @@ public class GameLogic implements IGameEvent {
 	private void gameOver() {
 		mGameState = GameState.GAME_OVER;
 		//TODO: add some animation and stuff
-		
-		if (mScore > mLocalHighScore) {
-			mLocalHighScore = mScore;
-		}
-		
+						
 		// TODO: ugly
 		mPlayingField.mParentActivity.showGameOverScreen();
+		
+		// TODO: Save the highscore here so it is never lost
+		if (mScore > mLocalHighScore) {
+			setHighScore(mScore);
+		}
+
 	}
 
 	private boolean moveBall(Point pSource, Point pDest) {
@@ -125,8 +126,6 @@ public class GameLogic implements IGameEvent {
 				new IAnimationListener() {
 
 					public void done() {
-						//addScore(1); // TODO: remove when not needed
-						
 						// only drop balls if the previous move removed nothing
 						FieldItem[] matches = removeLines(); 
 						GameLogic.this.mUndoState.mBallsRemovedFirstPass = matches;
@@ -304,7 +303,7 @@ public class GameLogic implements IGameEvent {
 	}
 
 	public void setHighScore(int pScore) {
-		this.mLocalHighScore = pScore;
+		mLocalHighScore = pScore;
 		this.mHighScoreDisplay.setScore(this.mLocalHighScore);		
 	}
 	
@@ -396,7 +395,7 @@ public class GameLogic implements IGameEvent {
 	public void loadGameState(SharedPreferences settings) {
 
 		
-		this.setHighScore(settings.getInt(STATE_HIGH_SCORE_KEY, 0));
+		this.setHighScore(3);//settings.getInt(STATE_HIGH_SCORE_KEY, 0));
 
         // check if the config had been created with the same version of the app
         // if yes then we can assume all the data is in a proper format
@@ -413,7 +412,7 @@ public class GameLogic implements IGameEvent {
     	    //Toast.makeText(this, next_balls, Toast.LENGTH_LONG).show();
             mDispencer.deserialize(next_balls);
            
-           setScore(settings.getInt(STATE_SCORE_KEY, 0));	           
+           setScore(12);//settings.getInt(STATE_SCORE_KEY, 0));	           
         } else {
      	   this.startGame();
         }
@@ -440,6 +439,17 @@ public class GameLogic implements IGameEvent {
 		  
 		  // Commit the edits!
 		  editor.commit();
+	}
+
+	public int getScore() {
+		return mScore;
+	}
+
+	/**
+	 * @return the mLocalHighScore
+	 */
+	public int getHighScore() {
+		return mLocalHighScore;
 	}
 
 	
