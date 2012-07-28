@@ -8,23 +8,17 @@ import org.anddev.andengine.engine.camera.hud.HUD;
 import org.anddev.andengine.engine.options.EngineOptions;
 import org.anddev.andengine.engine.options.EngineOptions.ScreenOrientation;
 import org.anddev.andengine.engine.options.resolutionpolicy.RatioResolutionPolicy;
-import org.anddev.andengine.entity.IEntity;
 import org.anddev.andengine.entity.modifier.AlphaModifier;
-import org.anddev.andengine.entity.modifier.IEntityModifier.IEntityModifierListener;
 import org.anddev.andengine.entity.modifier.MoveXModifier;
-import org.anddev.andengine.entity.modifier.ParallelEntityModifier;
 import org.anddev.andengine.entity.modifier.ScaleModifier;
 import org.anddev.andengine.entity.primitive.Rectangle;
 import org.anddev.andengine.entity.scene.Scene;
-import org.anddev.andengine.entity.scene.Scene.IOnAreaTouchListener;
 import org.anddev.andengine.entity.scene.Scene.IOnSceneTouchListener;
-import org.anddev.andengine.entity.scene.Scene.ITouchArea;
 import org.anddev.andengine.entity.scene.background.ColorBackground;
 import org.anddev.andengine.entity.scene.menu.MenuScene;
 import org.anddev.andengine.entity.scene.menu.MenuScene.IOnMenuItemClickListener;
 import org.anddev.andengine.entity.scene.menu.item.IMenuItem;
 import org.anddev.andengine.entity.scene.menu.item.SpriteMenuItem;
-import org.anddev.andengine.entity.sprite.Sprite;
 import org.anddev.andengine.entity.util.FPSLogger;
 import org.anddev.andengine.extension.input.touch.controller.MultiTouch;
 import org.anddev.andengine.extension.input.touch.controller.MultiTouchController;
@@ -39,7 +33,6 @@ import org.anddev.andengine.input.touch.detector.ScrollDetector;
 import org.anddev.andengine.input.touch.detector.ScrollDetector.IScrollDetectorListener;
 import org.anddev.andengine.input.touch.detector.SurfaceScrollDetector;
 import org.anddev.andengine.opengl.font.Font;
-import org.anddev.andengine.opengl.font.FontFactory;
 import org.anddev.andengine.opengl.font.FontManager;
 import org.anddev.andengine.opengl.texture.TextureOptions;
 import org.anddev.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas;
@@ -52,7 +45,6 @@ import org.anddev.andengine.opengl.texture.region.TextureRegion;
 import org.anddev.andengine.opengl.texture.region.TiledTextureRegion;
 import org.anddev.andengine.ui.activity.BaseGameActivity;
 import org.anddev.andengine.util.Debug;
-import org.anddev.andengine.util.modifier.IModifier;
 import org.anddev.andengine.util.modifier.ease.EaseBackIn;
 import org.anddev.andengine.util.modifier.ease.EaseBackOut;
 import org.anddev.andengine.util.modifier.ease.EaseSineInOut;
@@ -80,6 +72,13 @@ public class LineikiActivity
 
 	/*static final int CAMERA_WIDTH = 320;
 	static final int CAMERA_HEIGHT = 480;*/
+	public enum CurrentScreen {
+		GAME,
+		MENU,
+		GAMEOVER,
+	}
+	
+	CurrentScreen mCurrentScreen;
 	
 	protected static final int MENU_RESET = 0;
 	protected static final int MENU_UNDO = 1;
@@ -298,6 +297,7 @@ public class LineikiActivity
 		/// game over
 		//this.createGameOverScene();
 
+		mCurrentScreen = CurrentScreen.GAME;
         
 		return mMainScene;
 	}
@@ -314,11 +314,12 @@ public class LineikiActivity
 				this,
 				this.mGameLogic.getScore(),
 				this.mGameLogic.getHighScore());
-		animateOverlaySceneShown(scene);
+		animateOverlaySceneShown(scene, CurrentScreen.GAMEOVER);
 	}
 
-	private void animateOverlaySceneShown(Scene scene) {
+	private void animateOverlaySceneShown(Scene scene, CurrentScreen pCurrentScreen) {
 		mMainScene.setChildScene(scene, false, true, true);
+		mCurrentScreen = pCurrentScreen;
 		scene.setScaleCenter(mScreenWidth/2, mScreenHeight/2);
 		scene.registerEntityModifier(
 				new ScaleModifier(2.0f, 0.0f, 1.0f, EaseSineInOut.getInstance())
@@ -332,6 +333,7 @@ public class LineikiActivity
 
 	private void animateOverlaySceneHidden() {
 		mMainScene.clearChildScene();
+		mCurrentScreen = CurrentScreen.GAME;
 		mHUD.registerEntityModifier(
 				new MoveXModifier(1.0f, -mScreenWidth, 0.0f, EaseBackOut.getInstance())
 				);
@@ -376,11 +378,20 @@ public class LineikiActivity
 	/* *** MENU STUFF *** */
 	@Override
 	public boolean onKeyDown(final int pKeyCode, final KeyEvent pEvent) {
-		if((pKeyCode == KeyEvent.KEYCODE_MENU || pKeyCode == KeyEvent.KEYCODE_BACK) && pEvent.getAction() == KeyEvent.ACTION_DOWN) {
-			if(this.mMainScene.hasChildScene()) {
+		if((pKeyCode == KeyEvent.KEYCODE_MENU || pKeyCode == KeyEvent.KEYCODE_BACK) 
+				&& pEvent.getAction() == KeyEvent.ACTION_DOWN ) {
+			
+			switch(mCurrentScreen) {
+			case GAME:
+				animateOverlaySceneShown(this.mMenuScene, CurrentScreen.MENU);
+				return false;
+			case MENU:
 				animateOverlaySceneHidden();
-			} else {
-				animateOverlaySceneShown(this.mMenuScene);
+				return true;
+			case GAMEOVER:
+				animateOverlaySceneHidden();
+				this.finish();
+				return true;				
 			}
 			return true;
 		} else {
@@ -420,7 +431,7 @@ public class LineikiActivity
 		switch(pMenuItem.getID()) {
 			case MENU_RESET:
 				
-			animateOverlaySceneHidden();
+				animateOverlaySceneHidden();
 				// Restart the animation. 
 				mGameLogic.startGame();
 				return true;
