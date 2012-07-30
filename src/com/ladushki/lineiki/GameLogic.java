@@ -3,6 +3,11 @@ package com.ladushki.lineiki;
 import java.util.ArrayList;
 import java.util.Random;
 
+import org.anddev.andengine.entity.IEntity;
+import org.anddev.andengine.entity.modifier.DelayModifier;
+import org.anddev.andengine.entity.modifier.IEntityModifier.IEntityModifierListener;
+import org.anddev.andengine.util.modifier.IModifier;
+
 import android.content.SharedPreferences;
 import android.graphics.Point;
 
@@ -88,14 +93,34 @@ public class GameLogic implements IGameEvent {
 			mPlayingField.addBall(free_pt, next_colors[i], i);
 			mUndoState.mBallsDropped[i] = new FieldItem(next_colors[i], free_pt.x, free_pt.y);
 		}
-		mUndoState.mBallsRemovedSecondPass = removeLines();
+		mUndoState.mBallsRemovedSecondPass = removeLines();		
+		
+		/* Check if there any free tiles left, game over if nothing left
+		 * wait 2 seconds to allow ball animation to finish
+		 * */
+		if (getFreeTile() == null) {
+			mPlayingField.registerEntityModifier(
+					new DelayModifier(2.0f, 
+							new IEntityModifierListener() {
 
+								public void onModifierStarted(
+										IModifier<IEntity> pModifier,
+										IEntity pItem) {
+								}
+
+								public void onModifierFinished(
+										IModifier<IEntity> pModifier,
+										IEntity pItem) {
+									GameLogic.this.gameOver();
+								}
+						
+					}));
+			return;
+		}
 	}
 	
 	private void gameOver() {
-		mGameState = GameState.GAME_OVER;
-		//TODO: add some animation and stuff
-						
+		mGameState = GameState.GAME_OVER;						
 		// TODO: ugly
 		mPlayingField.mParentActivity.showGameOverScreen();
 		
@@ -134,7 +159,7 @@ public class GameLogic implements IGameEvent {
 						}
 						setCanUndo(true);
 						GameLogic.this.mGameState = GameState.SELECT_BALL;
-						gameOver();
+						//gameOver(); // for testing game over screen
 					}
 			
 		});
@@ -395,7 +420,7 @@ public class GameLogic implements IGameEvent {
 	public void loadGameState(SharedPreferences settings) {
 
 		
-		this.setHighScore(3);//settings.getInt(STATE_HIGH_SCORE_KEY, 0));
+		this.setHighScore(settings.getInt(STATE_HIGH_SCORE_KEY, 0));
 
         // check if the config had been created with the same version of the app
         // if yes then we can assume all the data is in a proper format
@@ -412,7 +437,7 @@ public class GameLogic implements IGameEvent {
     	    //Toast.makeText(this, next_balls, Toast.LENGTH_LONG).show();
             mDispencer.deserialize(next_balls);
            
-           setScore(12);//settings.getInt(STATE_SCORE_KEY, 0));	           
+           setScore(settings.getInt(STATE_SCORE_KEY, 0));	           
         } else {
      	   this.startGame();
         }
@@ -422,7 +447,6 @@ public class GameLogic implements IGameEvent {
 		
 		  // We need an Editor object to make preference changes.
 		  // All objects are from android.context.Context
-
 		  SharedPreferences.Editor editor = settings.edit();
 		  
 		  // remember the version the config had been created with
@@ -430,8 +454,6 @@ public class GameLogic implements IGameEvent {
 		  // playing field
 		  String field = mPlayingField.serialize();
 		  editor.putString(STATE_FIELD_KEY, field);
-		  //Toast.makeText(this, field, Toast.LENGTH_LONG).show();
-
 		  String next_balls = mDispencer.serialize();
 		  editor.putString(STATE_NEXT_BALLS_KEY, next_balls);
 		  editor.putInt(STATE_SCORE_KEY, mScore);

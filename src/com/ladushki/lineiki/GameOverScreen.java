@@ -31,7 +31,8 @@ public class GameOverScreen extends MenuScene {
 		Rectangle r = new Rectangle(0, 0, pActivity.getScreenWidth(), pActivity.getScreenHeight());
 		r.setColor(0, 0, 0, 0.0f);
 		r.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
-		r.registerEntityModifier(new AlphaModifier(1.0f, 0.0f, 0.5f));
+		r.setAlpha(0.5f);
+		//r.registerEntityModifier(new AlphaModifier(1.0f, 0.0f, 0.5f));
 
 		this.attachChild(r);
 		int w = pActivity.getTileSize();
@@ -52,7 +53,7 @@ public class GameOverScreen extends MenuScene {
 		quitMenuItem.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
 		this.addMenuItem(quitMenuItem);
 
-		this.buildAnimations();
+		//this.buildAnimations();
 		// manually override menu items position
 		resetMenuItem.setPosition(w*1, w*11);
 		quitMenuItem.setPosition(w*5, w*11);

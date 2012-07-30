@@ -70,8 +70,6 @@ public class LineikiActivity
 		IClickDetectorListener
   {
 
-	/*static final int CAMERA_WIDTH = 320;
-	static final int CAMERA_HEIGHT = 480;*/
 	public enum CurrentScreen {
 		GAME,
 		MENU,
@@ -88,8 +86,6 @@ public class LineikiActivity
 
 	
 	private ZoomCamera mCamera;
-	/*private BitmapTextureAtlas mTexture;
-	private TiledTextureRegion mTextureRegion;*/
 	private BitmapTextureAtlas mFontTexture;
 	private Font mFont;
 	
@@ -149,8 +145,6 @@ public class LineikiActivity
 
 		this.mCamera = new ZoomCamera(0, 0, mScreenWidth, mScreenHeight);
 
-		/*final int maxVBound = mScreenWidth;
-		final int maxHBound = mScreenHeight;*/
 		this.mCamera.setBounds(0, mScreenWidth, 0, mScreenHeight);
 		this.mCamera.setBoundsEnabled(true);
 
@@ -302,11 +296,6 @@ public class LineikiActivity
 		return mMainScene;
 	}
 
-	/*private Scene createGameOverScene() {
-		
-		return scene;
-	}*/
-	
 	
 	public void showGameOverScreen() {
 		final GameOverScreen scene = new GameOverScreen(
@@ -314,6 +303,8 @@ public class LineikiActivity
 				this,
 				this.mGameLogic.getScore(),
 				this.mGameLogic.getHighScore());
+		scene.setScaleCenter(mScreenWidth/2, mScreenHeight/2);
+		scene.setScale(0.1f);
 		animateOverlaySceneShown(scene, CurrentScreen.GAMEOVER);
 	}
 
@@ -322,7 +313,7 @@ public class LineikiActivity
 		mCurrentScreen = pCurrentScreen;
 		scene.setScaleCenter(mScreenWidth/2, mScreenHeight/2);
 		scene.registerEntityModifier(
-				new ScaleModifier(2.0f, 0.0f, 1.0f, EaseSineInOut.getInstance())
+				new ScaleModifier(2.0f, 0.1f, 1.0f, EaseSineInOut.getInstance())
 				);
 		
 		mHUD.registerEntityModifier(
@@ -349,21 +340,6 @@ public class LineikiActivity
 
 	public TextureRegion getDotTexture() {
 		return mDotTextureRegion;
-	}
-
-	protected Dialog onCreateDialog(int id) {
-	    Dialog dialog;
-	    switch(id) {
-	    /*case DIALOG_PAUSED_ID:
-	        // do the work to define the pause Dialog
-	        break;
-	    case DIALOG_GAMEOVER_ID:
-	        // do the work to define the game over Dialog
-	        break;*/
-	    default:
-	        dialog = null;
-	    }
-	    return dialog;
 	}
 	
     public void runOnUpdateThread(final Runnable pRunnable) {
@@ -524,9 +500,6 @@ public class LineikiActivity
 
             return true;
     }
-
-
-    
     
     public void onScroll(final ScrollDetector pScollDetector, final TouchEvent pTouchEvent, final float pDistanceX, final float pDistanceY) {
             final float zoomFactor = this.mCamera.getZoomFactor();
@@ -570,7 +543,6 @@ public class LineikiActivity
 	public int getScreenHeight() {
 		return mScreenHeight;
 	}
-
 
 	Font getFont() {
 		return mFont;
