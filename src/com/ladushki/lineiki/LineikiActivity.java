@@ -149,7 +149,7 @@ public class LineikiActivity
 		this.mCamera.setBoundsEnabled(true);
 
 		final EngineOptions engineOptions = new EngineOptions(true,
-				ScreenOrientation.PORTRAIT, new RatioResolutionPolicy(
+				ScreenOrientation.LANDSCAPE, new RatioResolutionPolicy(
 						mScreenWidth, mScreenHeight), this.mCamera);
 
 			engineOptions.setNeedsSound(true);
@@ -309,7 +309,7 @@ public class LineikiActivity
 	}
 
 	private void animateOverlaySceneShown(Scene scene, CurrentScreen pCurrentScreen) {
-		mMainScene.setChildScene(scene, false, true, true);
+		mMainScene.setChildScene(scene, false, false, true);
 		mCurrentScreen = pCurrentScreen;
 		scene.setScaleCenter(mScreenWidth/2, mScreenHeight/2);
 		scene.registerEntityModifier(
@@ -459,18 +459,18 @@ public class LineikiActivity
 		return mGameOver;
 	}
 	
-	public void onSaveInstanceState(Bundle outBundle) {
+	//public void onSaveInstanceState(Bundle outBundle) {
 		/* Invoked when the activity needs to be destroyed and re-created
 		 * within the same process's lifecycle, i.e. when screen is rotated */
-		super.onSaveInstanceState(outBundle);
+		//super.onSaveInstanceState(outBundle);
 		// outBundle.putChar("key", 'A');
-	}
+	//}
 	
-	public void onRestoreInstanceState(Bundle inBundle) {
+	/*public void onRestoreInstanceState(Bundle inBundle) {
 		super.onRestoreInstanceState(inBundle);
 		// char c = inBundle.getChar("key");
 		
-	}
+	}*/
 	
  
     @Override
