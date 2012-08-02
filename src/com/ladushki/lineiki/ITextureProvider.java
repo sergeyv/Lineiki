@@ -19,5 +19,7 @@ public interface ITextureProvider {
 	public	int getTileSize();
 	public int getScreenWidth();
 	public int getScreenHeight();
+	
+	public boolean getIsTablet();
 
 }

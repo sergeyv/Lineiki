@@ -7,6 +7,7 @@ import org.anddev.andengine.entity.modifier.AlphaModifier;
 import org.anddev.andengine.entity.primitive.Rectangle;
 import org.anddev.andengine.entity.scene.menu.MenuScene;
 import org.anddev.andengine.entity.scene.menu.item.SpriteMenuItem;
+import org.anddev.andengine.entity.scene.menu.item.TextMenuItem;
 import org.anddev.andengine.entity.sprite.Sprite;
 import org.anddev.andengine.entity.text.Text;
 import org.anddev.andengine.util.HorizontalAlign;
@@ -45,18 +46,29 @@ public class GameOverScreen extends MenuScene {
 		mScoreDisplay.setScore(pScore);
 		this.attachChild(mScoreDisplay);*/
 
-		final SpriteMenuItem resetMenuItem = new SpriteMenuItem(LineikiActivity.MENU_RESET, pActivity.mMenuNewGame);
-		resetMenuItem.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
+		final TextMenuItem resetMenuItem = new TextMenuItem(LineikiActivity.MENU_RESET, pActivity.mFont, "New Game");
 		this.addMenuItem(resetMenuItem);
 
-		final SpriteMenuItem quitMenuItem = new SpriteMenuItem(LineikiActivity.MENU_QUIT, pActivity.mMenuQuit);
-		quitMenuItem.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
+		final TextMenuItem quitMenuItem = new TextMenuItem(LineikiActivity.MENU_QUIT, pActivity.mFont, "Quit");
 		this.addMenuItem(quitMenuItem);
 
 		//this.buildAnimations();
+		float scoreTop;
+		float scoreLeft;
 		// manually override menu items position
-		resetMenuItem.setPosition(w*1, w*11);
-		quitMenuItem.setPosition(w*5, w*11);
+		if (pActivity.getIsTablet()) { // TABLET
+			game_over.setPosition(w*1.0f, w*1.5f);
+			resetMenuItem.setPosition(w*10.5f, w*6.5f);
+			quitMenuItem.setPosition(w*10.5f, w*8.5f);	
+			scoreTop = w*6.5f;
+			scoreLeft = w*0.5f;
+		} else { // PHONE
+			game_over.setPosition(w*.5f, w*2);
+			resetMenuItem.setPosition(w*1, w*11);
+			quitMenuItem.setPosition(w*5, w*11);
+			scoreTop = w*6;
+			scoreLeft = 0;
+		}
 
 		this.setBackgroundEnabled(false);
 
@@ -67,7 +79,7 @@ public class GameOverScreen extends MenuScene {
 			"Your score: " + Integer.valueOf(pScore).toString(), 
 			HorizontalAlign.CENTER);
 		this.attachChild(t);		
-		t.setPosition((w*9 - t.getWidth())/2, w*6);
+		t.setPosition(scoreLeft + (w*9 - t.getWidth())/2, scoreTop);
 
 		if (pHighscore > 0) { // highscore is zero initially
 			t = new Text(100, 60, 
@@ -75,7 +87,7 @@ public class GameOverScreen extends MenuScene {
 				"Personal best: " + Integer.valueOf(pHighscore).toString(), 
 				HorizontalAlign.CENTER);
 			this.attachChild(t);
-			t.setPosition((w*9 - t.getWidth())/2, w*7f);
+			t.setPosition(scoreLeft + (w*9 - t.getWidth())/2, scoreTop + w);
 			
 			if (pScore > pHighscore) {
 				t = new Text(100, 60, 
@@ -83,7 +95,7 @@ public class GameOverScreen extends MenuScene {
 					"YOU WIN!!!", 
 					HorizontalAlign.CENTER);
 				this.attachChild(t);
-				t.setPosition((w*9 - t.getWidth())/2, w*8);				
+				t.setPosition(scoreLeft + (w*9 - t.getWidth())/2, scoreTop + w*2);				
 			}
 		} 
 		

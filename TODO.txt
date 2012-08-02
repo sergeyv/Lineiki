@@ -1,9 +1,9 @@
 TODO:
 =====
 
-- Game over
++ Game over
 + store state
-- store highscores
++ store highscores
 + zoom
 + indicate when ball can not be moved
 
@@ -11,6 +11,12 @@ TODO:
 -- more points for longer lines
 -- (slightly) more points for diagonals
 -- more points for 'combos', i.e. multiple lines one after another 
+
++ use text for... well, for text messages
+-- move text to resources
+-- play with i18n
+
+- fix Undo
 
 
 LATER:

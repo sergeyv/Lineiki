@@ -19,6 +19,7 @@ import org.anddev.andengine.entity.scene.menu.MenuScene;
 import org.anddev.andengine.entity.scene.menu.MenuScene.IOnMenuItemClickListener;
 import org.anddev.andengine.entity.scene.menu.item.IMenuItem;
 import org.anddev.andengine.entity.scene.menu.item.SpriteMenuItem;
+import org.anddev.andengine.entity.scene.menu.item.TextMenuItem;
 import org.anddev.andengine.entity.util.FPSLogger;
 import org.anddev.andengine.extension.input.touch.controller.MultiTouch;
 import org.anddev.andengine.extension.input.touch.controller.MultiTouchController;
@@ -50,7 +51,9 @@ import org.anddev.andengine.util.modifier.ease.EaseBackOut;
 import org.anddev.andengine.util.modifier.ease.EaseSineInOut;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -87,7 +90,7 @@ public class LineikiActivity
 	
 	private ZoomCamera mCamera;
 	private BitmapTextureAtlas mFontTexture;
-	private Font mFont;
+	Font mFont;
 	
 	
 	private GameLogic mGameLogic;
@@ -119,6 +122,8 @@ public class LineikiActivity
 	private ClickDetector mClickDetector;
 	private float mPinchZoomStartedCameraZoomFactor;
 	private PlayingField mPlayingField;
+	
+	private boolean mIsTablet;
 	//private ScoreDisplay mGameoverScreenScore;
 
 
@@ -142,15 +147,21 @@ public class LineikiActivity
         this.mScreenWidth = displayMetrics.widthPixels;
         this.mScreenHeight = displayMetrics.heightPixels;
         this.mLeftBorder = mScreenWidth % 9 / 2;
+        
+        this.mIsTablet = isTabletDevice();
 
 		this.mCamera = new ZoomCamera(0, 0, mScreenWidth, mScreenHeight);
 
 		this.mCamera.setBounds(0, mScreenWidth, 0, mScreenHeight);
 		this.mCamera.setBoundsEnabled(true);
+		
+		ScreenOrientation orientation = mIsTablet ? ScreenOrientation.LANDSCAPE: ScreenOrientation.PORTRAIT;
 
-		final EngineOptions engineOptions = new EngineOptions(true,
-				ScreenOrientation.LANDSCAPE, new RatioResolutionPolicy(
-						mScreenWidth, mScreenHeight), this.mCamera);
+		final EngineOptions engineOptions = new EngineOptions(
+				true,
+				orientation, 
+				new RatioResolutionPolicy(mScreenWidth, mScreenHeight), 
+				this.mCamera);
 
 			engineOptions.setNeedsSound(true);
 			engineOptions.setNeedsMusic(true);		
@@ -185,7 +196,7 @@ public class LineikiActivity
 		getFontManager().loadFont(mFont);*/
 		
 		
-		mBuildableBitmapTextureAtlas = new BuildableBitmapTextureAtlas(1024, 1024, TextureOptions.BILINEAR_PREMULTIPLYALPHA);//
+		mBuildableBitmapTextureAtlas = new BuildableBitmapTextureAtlas(2048, 1024, TextureOptions.BILINEAR_PREMULTIPLYALPHA);//
 		SVGBitmapTextureAtlasTextureRegionFactory.setAssetBasePath("gfx/");
 				
 		int tile_size = this.getTileSize();
@@ -210,6 +221,7 @@ public class LineikiActivity
 			mBuildableBitmapTextureAtlas.build(new BlackPawnTextureBuilder<IBitmapTextureAtlasSource, BitmapTextureAtlas>(1));
 		} catch (final TextureAtlasSourcePackingException e) {
 			Debug.e(e);
+			Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
 		}
 
 		mEngine.getTextureManager().loadTexture(mBuildableBitmapTextureAtlas);
@@ -233,32 +245,43 @@ public class LineikiActivity
 		mCamera.setHUD(this.mHUD);
 		
 		final BallDispencer disp = new BallDispencer(this);
-		disp.setPosition(mLeftBorder + getTileSize()*3, getTileSize()*0.2f);
 		mHUD.attachChild(disp);
 				
 		final ScoreDisplay score = new ScoreDisplay(this, 3);
-		score.setPosition(getTileSize()*5, getTileSize()*11);
 		mHUD.attachChild(score);
 
 		final ScoreDisplay highscore = new ScoreDisplay(this, 3);
-		highscore.setPosition(getTileSize()*1, getTileSize()*11);
 		mHUD.attachChild(highscore);
-
+		
 		/// main scene
-		this.mMainScene = new Scene();
-				
+		this.mMainScene = new Scene();		
 		mMainScene.setBackground(new ColorBackground(0.1f, 0.1f, 0.1f));
 		
 		this.mPlayingField = new PlayingField(this, this);
-		mPlayingField.setPosition(mLeftBorder, getTileSize()*1.4f);
-		
 		mMainScene.attachChild(mPlayingField);
 		//mMainScene.registerTouchArea(field);	
 		//mMainScene.setTouchAreaBindingEnabled(true);
 		
-		mGameLogic = new GameLogic(mPlayingField, disp);
-		mGameLogic.setScoreDisplay(score, highscore);
+		int t = getTileSize();
+		// position stuff
+		if (mIsTablet) {
+			// TABLET
+			disp.setPosition(t*10.5f, t*1.5f);
+			score.setPosition(t*10.5f, t*5.5f);
+			highscore.setPosition(t*10.5f, t*7.5f);
+			mPlayingField.setPosition(t*0.5f, t*0.5f);			
+			
+		} else {
+			// PHONE
+			disp.setPosition(mLeftBorder + t*3, t*0.2f);
+			score.setPosition(t*5, t*11);
+			highscore.setPosition(t*1, t*11);
+			mPlayingField.setPosition(mLeftBorder, t*1.4f);			
+		}
+
 		
+		mGameLogic = new GameLogic(mPlayingField, disp);
+		mGameLogic.setScoreDisplay(score, highscore);		
 		mPlayingField.setEvent(mGameLogic);
 		
 		// prefs
@@ -272,14 +295,14 @@ public class LineikiActivity
 		this.mScrollDetector = new SurfaceScrollDetector(this);
 		
 		// pinch zoom
-        if(MultiTouch.isSupportedByAndroidVersion()) {
-                try {
-                        this.mPinchZoomDetector = new PinchZoomDetector(this);
-                } catch (final MultiTouchException e) {
-                        this.mPinchZoomDetector = null;
-                }
-        } else {
+        if (MultiTouch.isSupportedByAndroidVersion()) {
+            try {
+                this.mPinchZoomDetector = new PinchZoomDetector(this);
+            } catch (final MultiTouchException e) {
                 this.mPinchZoomDetector = null;
+            }
+        } else {
+            this.mPinchZoomDetector = null;
         }
 
         this.mMainScene.setOnSceneTouchListener(this);
@@ -287,10 +310,6 @@ public class LineikiActivity
 
 		/// menu
 		this.createMenuScene();
-		
-		/// game over
-		//this.createGameOverScene();
-
 		mCurrentScreen = CurrentScreen.GAME;
         
 		return mMainScene;
@@ -384,22 +403,23 @@ public class LineikiActivity
 		r.registerEntityModifier(new AlphaModifier(1.0f, 0.0f, 0.5f));
 		mMenuScene.attachChild(r);
 
-		final SpriteMenuItem resetMenuItem = new SpriteMenuItem(MENU_RESET, this.mMenuNewGame);
-		resetMenuItem.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
-		this.mMenuScene.addMenuItem(resetMenuItem);
-
-		final SpriteMenuItem undoMenuItem = new SpriteMenuItem(MENU_UNDO, this.mMenuUndo);
-		undoMenuItem.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
+		final TextMenuItem undoMenuItem = new TextMenuItem(MENU_UNDO, mFont, "Undo");
+		//final SpriteMenuItem undoMenuItem = new SpriteMenuItem(MENU_UNDO, this.mMenuUndo);
+		//undoMenuItem.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
 		this.mMenuScene.addMenuItem(undoMenuItem);
 
-		final SpriteMenuItem quitMenuItem = new SpriteMenuItem(MENU_QUIT, this.mMenuQuit);
-		quitMenuItem.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
+		//final SpriteMenuItem resetMenuItem = new SpriteMenuItem(MENU_RESET, this.mMenuNewGame);
+		final TextMenuItem resetMenuItem = new TextMenuItem(MENU_RESET, mFont, "New Game");
+		//resetMenuItem.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
+		this.mMenuScene.addMenuItem(resetMenuItem);
+
+		final TextMenuItem quitMenuItem = new TextMenuItem(MENU_QUIT, mFont, "Quit");
+		//final SpriteMenuItem quitMenuItem = new SpriteMenuItem(MENU_QUIT, this.mMenuQuit);
+		//quitMenuItem.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
 		this.mMenuScene.addMenuItem(quitMenuItem);
 
 		this.mMenuScene.buildAnimations();
-
 		this.mMenuScene.setBackgroundEnabled(false);
-
 		this.mMenuScene.setOnMenuItemClickListener(this);
 	}
 
@@ -429,6 +449,9 @@ public class LineikiActivity
 
 	public int getTileSize() {
 		/* Returns the size of a single playing field cell in pixels */
+		if (getIsTablet()) {
+			return this.mScreenHeight/10;			
+		}
 		return this.mScreenWidth/9;
 	}
 
@@ -548,4 +571,17 @@ public class LineikiActivity
 		return mFont;
 	}
 
+	private boolean isTabletDevice() {
+	    // Verifies if the Generalized Size of the device is XLARGE to be
+	    // considered a Tablet
+	    boolean xlarge = ((this.getResources().getConfiguration().screenLayout & 
+	                        Configuration.SCREENLAYOUT_SIZE_MASK) == 
+	                        Configuration.SCREENLAYOUT_SIZE_XLARGE);
+	    return xlarge;
+
+	}
+	
+	public boolean getIsTablet() {
+		return this.mIsTablet;
+	}
 }

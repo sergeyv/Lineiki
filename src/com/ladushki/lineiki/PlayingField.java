@@ -115,7 +115,7 @@ public class PlayingField extends Entity {
 		return null;
 	}
 
-	public boolean contains(float pX, float pY) {
+	/*public boolean contains(float pX, float pY) {
 		int tile_size = mTextureProvider.getTileSize();
 		pX -= this.getX();
 		pY -= this.getY();
@@ -123,7 +123,7 @@ public class PlayingField extends Entity {
 			return true;
 		}
 		return false;
-	}
+	}*/
 
 	/*
 	 * public boolean onAreaTouched(final TouchEvent pSceneTouchEvent, final
@@ -145,6 +145,8 @@ public class PlayingField extends Entity {
 		int tile_size = mTextureProvider.getTileSize();
 		final int x = (int) (pX / tile_size);
 		final int y = (int) (pY / tile_size);
+		if (x < 0 || x >= FIELD_WIDTH) { return; }
+		if (y < 0 || y >= FIELD_HEIGHT) { return; }
 		mEvent.onTileTouched(x, y);
 
 		mLastTouch.x = x * mTextureProvider.getTileSize();
