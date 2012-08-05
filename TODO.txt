@@ -7,10 +7,10 @@ TODO:
 + zoom
 + indicate when ball can not be moved
 
-- score
--- more points for longer lines
--- (slightly) more points for diagonals
--- more points for 'combos', i.e. multiple lines one after another 
++ score
+++ more points for longer lines
+++ (slightly) more points for diagonals
+++ more points for 'combos', i.e. multiple lines one after another 
 
 + use text for... well, for text messages
 -- move text to resources

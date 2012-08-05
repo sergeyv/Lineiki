@@ -51,4 +51,8 @@ public class SequenceChecker {
 		return null;
 		
 	}
+	
+	public int getNumMatches() {
+		return m_allMatches.size();
+	}
 }

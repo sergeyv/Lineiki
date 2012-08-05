@@ -42,6 +42,7 @@ public class GameLogic implements IGameEvent {
 	private int mScore;
 	private int mLocalHighScore;
 	boolean mHighScoreReachedAnimationShown;
+	int mComboBonus;
 
 	Point mSelectedSource;
 	Point mSelectedDestination;
@@ -67,6 +68,8 @@ public class GameLogic implements IGameEvent {
 
 	public void startGame() {
 		initGame();
+		
+		mComboBonus = 0;
 		mPlayingField.animateClear(new IAnimationListener() {
 
 			public void done() {
@@ -84,6 +87,8 @@ public class GameLogic implements IGameEvent {
 		BallColor[] next_colors = mDispencer.getNextBalls();
 		mUndoState.mBallsDropped = new FieldItem[3];
 		
+		mComboBonus = 0; // dropping the balls means the combo bonus is no longer valid
+		
 		for (int i = 0; i < next_colors.length; i++) {
 			Point free_pt = getFreeTile();
 			if (free_pt == null) {
@@ -96,7 +101,8 @@ public class GameLogic implements IGameEvent {
 		mUndoState.mBallsRemovedSecondPass = removeLines();		
 		
 		/* Check if there any free tiles left, game over if nothing left
-		 * wait 2 seconds to allow ball animation to finish
+		 * wait 2 seconds to allow ball animation to finish before showing
+		 * the game over screen
 		 * */
 		if (getFreeTile() == null) {
 			mPlayingField.registerEntityModifier(
@@ -154,8 +160,10 @@ public class GameLogic implements IGameEvent {
 						// only drop balls if the previous move removed nothing
 						FieldItem[] matches = removeLines(); 
 						GameLogic.this.mUndoState.mBallsRemovedFirstPass = matches;
-						if (matches == null) {			
+						if (matches == null) {	
 							dropNextBalls();
+						} else {
+							mComboBonus += 5;
 						}
 						setCanUndo(true);
 						GameLogic.this.mGameState = GameState.SELECT_BALL;
@@ -233,6 +241,7 @@ public class GameLogic implements IGameEvent {
 	private FieldItem[] removeLines() {
 		/// returns the number of balls removed
 		SequenceChecker checker = new SequenceChecker();
+		int hv_matches, d_matches;
 		
 		/// check horizontals
 		for (int j = 0; j < mPlayingField.FIELD_HEIGHT; j++) {
@@ -251,6 +260,8 @@ public class GameLogic implements IGameEvent {
 				checker.check(color, j, i);
 			}
 		}
+		
+		hv_matches = checker.getNumMatches();
 
 		/// check diagonals (top-right to bottom-left)
 		for (int j = 0; j < mPlayingField.FIELD_WIDTH; j++) {
@@ -285,13 +296,14 @@ public class GameLogic implements IGameEvent {
 		}
 		checker.startRow(); // flush the last line
 
+		d_matches = checker.getNumMatches() - hv_matches;
 
 		FieldItem[] tiles_to_remove = checker.getMatchedTiles();
 		
 		if (tiles_to_remove != null) {
 			
 			/// score stuff
-			int scoreDelta = tiles_to_remove.length;
+			int scoreDelta = calculateScoreDelta(hv_matches, d_matches);
 			this.addScore(scoreDelta);
 			
 			Point p = mPlayingField.removeBalls(tiles_to_remove);
@@ -304,6 +316,33 @@ public class GameLogic implements IGameEvent {
 	}
 
 	
+	private int calculateScoreDelta(int hv_matches, int d_matches) {
+		int scoreDelta = 0;
+		int bonus = 0;
+		if (hv_matches > 0) {
+			// first 5 horizontal or vertical balls cost 5 points
+			scoreDelta += 5;
+		}
+		if (d_matches > 0) {
+			// first 5 diagonal balls cost 6 points
+			scoreDelta += 6;
+		}
+		
+		int bonus_points = hv_matches + d_matches - 5;
+		
+		// every ball beyond the required 5 brings 5 points more
+		// than the previous one.
+		for (int i = 1; i <= bonus_points; i++) {
+			scoreDelta += i*5;
+		}
+		
+		// if lines are removed one after another
+		// 5 additional points are given for the second line,
+		// 10 for the third etc.
+		scoreDelta += mComboBonus;
+		return scoreDelta;
+	}
+
 	public void setScoreDisplay(ScoreDisplay pScore, ScoreDisplay pHighScore) {
 		this.mScoreDisplay = pScore;
 		this.mScoreDisplay.setScore(0);
