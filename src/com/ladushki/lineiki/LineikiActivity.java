@@ -84,6 +84,7 @@ public class LineikiActivity
 	protected static final int MENU_RESET = 0;
 	protected static final int MENU_UNDO = 1;
 	protected static final int MENU_QUIT = 2;
+	protected static final int MENU_CONTINUE = 3;
 	
 	private static final String PREFS_NAME = "LineikiPrefsFile";
 
@@ -105,7 +106,7 @@ public class LineikiActivity
 	private TextureRegion mGameOver;
 	
 	private Scene mMainScene;
-	private MenuScene mMenuScene;
+	//private MenuScene mMenuScene;
 	//private Scene mGameOverScene;
 	private HUD mHUD;
 	
@@ -168,15 +169,17 @@ public class LineikiActivity
 		
 		Engine engine = new Engine(engineOptions);
 		
-		try {
-            if(MultiTouch.isSupported(this)) {
-                    engine.setTouchController(new MultiTouchController());
-            } else {
-                    Toast.makeText(this, "Sorry your device does NOT support MultiTouch!\n\n(No PinchZoom is possible!)", Toast.LENGTH_LONG).show();
-            }
-	    } catch (final MultiTouchException e) {
-	            Toast.makeText(this, "Sorry your Android Version does NOT support MultiTouch!\n\n(No PinchZoom is possible!)", Toast.LENGTH_LONG).show();
-	    }
+		if (!this.getIsTablet()) { // don't need pinch zoom on a tablet
+			try {
+	            if(MultiTouch.isSupported(this)) {
+	                    engine.setTouchController(new MultiTouchController());
+	            } else {
+	                    Toast.makeText(this, "Sorry your device does NOT support MultiTouch!\n\n(No PinchZoom is possible!)", Toast.LENGTH_LONG).show();
+	            }
+		    } catch (final MultiTouchException e) {
+		            Toast.makeText(this, "Sorry your Android Version does NOT support MultiTouch!\n\n(No PinchZoom is possible!)", Toast.LENGTH_LONG).show();
+		    }
+		}
 
 		return engine;
 	}
@@ -308,8 +311,6 @@ public class LineikiActivity
         this.mMainScene.setOnSceneTouchListener(this);
         this.mMainScene.setTouchAreaBindingEnabled(true);
 
-		/// menu
-		this.createMenuScene();
 		mCurrentScreen = CurrentScreen.GAME;
         
 		return mMainScene;
@@ -378,7 +379,7 @@ public class LineikiActivity
 			
 			switch(mCurrentScreen) {
 			case GAME:
-				animateOverlaySceneShown(this.mMenuScene, CurrentScreen.MENU);
+				animateOverlaySceneShown(createMenuScene(), CurrentScreen.MENU);
 				return false;
 			case MENU:
 				animateOverlaySceneHidden();
@@ -394,56 +395,63 @@ public class LineikiActivity
 		}
 	}
 
-	protected void createMenuScene() {
-		this.mMenuScene = new MenuScene(this.mCamera);
+	protected MenuScene createMenuScene() {
+		MenuScene ms = new MenuScene(this.mCamera);
 		
 		Rectangle r = new Rectangle(0, 0, mScreenWidth, mScreenHeight);
 		r.setColor(0, 0, 0, 0.0f);
 		r.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
 		r.registerEntityModifier(new AlphaModifier(1.0f, 0.0f, 0.5f));
-		mMenuScene.attachChild(r);
+		ms.attachChild(r);
 
-		final TextMenuItem undoMenuItem = new TextMenuItem(MENU_UNDO, mFont, "Undo");
+		final TextMenuItem continueMenuItem = new TextMenuItem(MENU_CONTINUE, mFont, "Continue");
 		//final SpriteMenuItem undoMenuItem = new SpriteMenuItem(MENU_UNDO, this.mMenuUndo);
 		//undoMenuItem.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
-		this.mMenuScene.addMenuItem(undoMenuItem);
+		ms.addMenuItem(continueMenuItem);
+
+		if (mGameLogic.getCanUndo()) {
+			final TextMenuItem undoMenuItem = new TextMenuItem(MENU_UNDO, mFont, "Undo");
+			//final SpriteMenuItem undoMenuItem = new SpriteMenuItem(MENU_UNDO, this.mMenuUndo);
+			//undoMenuItem.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
+			ms.addMenuItem(undoMenuItem);
+		}
 
 		//final SpriteMenuItem resetMenuItem = new SpriteMenuItem(MENU_RESET, this.mMenuNewGame);
 		final TextMenuItem resetMenuItem = new TextMenuItem(MENU_RESET, mFont, "New Game");
 		//resetMenuItem.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
-		this.mMenuScene.addMenuItem(resetMenuItem);
+		ms.addMenuItem(resetMenuItem);
 
 		final TextMenuItem quitMenuItem = new TextMenuItem(MENU_QUIT, mFont, "Quit");
 		//final SpriteMenuItem quitMenuItem = new SpriteMenuItem(MENU_QUIT, this.mMenuQuit);
 		//quitMenuItem.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
-		this.mMenuScene.addMenuItem(quitMenuItem);
+		ms.addMenuItem(quitMenuItem);
 
-		this.mMenuScene.buildAnimations();
-		this.mMenuScene.setBackgroundEnabled(false);
-		this.mMenuScene.setOnMenuItemClickListener(this);
+		ms.buildAnimations();
+		ms.setBackgroundEnabled(false);
+		ms.setOnMenuItemClickListener(this);
+		
+		return ms;
 	}
 
 	public boolean onMenuItemClicked(final MenuScene pMenuScene, final IMenuItem pMenuItem, final float pMenuItemLocalX, final float pMenuItemLocalY) {
+		
 		switch(pMenuItem.getID()) {
-			case MENU_RESET:
-				
-				animateOverlaySceneHidden();
-				// Restart the animation. 
+			case MENU_CONTINUE: // hide the menu and continue game
+				break;
+			case MENU_RESET: // new game
 				mGameLogic.startGame();
-				return true;
-			case MENU_UNDO:
-				// End Activity.
+				break;
+			case MENU_UNDO: // Undo last step.
 				mGameLogic.undoLastStep();
-				this.mMainScene.clearChildScene();
-				this.mMenuScene.reset();
-				return true;
-			case MENU_QUIT:
-				// End Activity.
+				break;
+			case MENU_QUIT: // End Activity.
 				this.finish();
-				return true;
+				break;
 			default:
 				return false;
-		}
+		}		
+		animateOverlaySceneHidden();
+		return true;
 	}
 
 

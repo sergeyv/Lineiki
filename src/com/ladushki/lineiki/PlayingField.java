@@ -11,6 +11,7 @@ import org.anddev.andengine.entity.modifier.AlphaModifier;
 import org.anddev.andengine.entity.modifier.DelayModifier;
 import org.anddev.andengine.entity.modifier.IEntityModifier.IEntityModifierListener;
 import org.anddev.andengine.entity.modifier.LoopEntityModifier;
+import org.anddev.andengine.entity.modifier.MoveModifier;
 import org.anddev.andengine.entity.modifier.ParallelEntityModifier;
 import org.anddev.andengine.entity.modifier.RotationModifier;
 import org.anddev.andengine.entity.modifier.ScaleModifier;
@@ -188,7 +189,7 @@ public class PlayingField extends Entity {
 		attachChild(dot);
 	}
 
-	public void animateMovingBall(Point pSource, Point pDest, Point[] pPath,
+	public void animateMovingBall(final Point pSource, final Point pDest, final Point[] pPath,
 			final IAnimationListener listener) {
 		Point srcPt = pSource;
 		Point destPt = pDest;
@@ -356,7 +357,10 @@ public class PlayingField extends Entity {
 					}
 				},
 
-				new ScaleModifier(2.0f, 1, 3)
+				new ScaleModifier(2.0f, 1, 3),
+				new MoveModifier(2.0f, x, y, 
+						mTextureProvider.getTileSize()*4,
+						mTextureProvider.getTileSize()*4)
 		// / AlphaModifier doesn't work with sub-objects of an Entity
 		// / so we're applying it separately to each digit in ScorePopup
 		));

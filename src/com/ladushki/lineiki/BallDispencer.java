@@ -41,7 +41,7 @@ public class BallDispencer extends Entity {
 			final BallSprite ball = tile.getBall();
 			colors[i] = ball.getColor();
 			if (pReset) {
-				ball.setColor(BallColor.PURPLE); //randomColor());
+				ball.setColor(BallColor.randomColor());
 			}
 		}
 		return colors;

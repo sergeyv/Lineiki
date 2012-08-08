@@ -29,6 +29,8 @@ public class GameLogic implements IGameEvent {
 	private static final String STATE_NEXT_BALLS_KEY = "NEXT_BALLS";
 	private static final String STATE_SCORE_KEY = "SCORE";
 	private static final String STATE_HIGH_SCORE_KEY = "HIGHSCORE";
+	
+	private static final int UNDO_PENALTY = 5;
 
 
 	GameState mGameState;
@@ -81,6 +83,10 @@ public class GameLogic implements IGameEvent {
 
 	private void setCanUndo(boolean b) {
 		mCanUndo = b;
+	}
+	
+	public boolean getCanUndo() {
+		return mCanUndo;
 	}
 
 	private void dropNextBalls() {
@@ -137,7 +143,7 @@ public class GameLogic implements IGameEvent {
 
 	}
 
-	private boolean moveBall(Point pSource, Point pDest) {
+	private boolean moveBall(final Point pSource, final Point pDest) {
 		/*
 		 * Returns true if the ball is successfully moved, false if
 		 * it can't be moved
@@ -157,6 +163,8 @@ public class GameLogic implements IGameEvent {
 				new IAnimationListener() {
 
 					public void done() {
+						newUndoState(pSource, pDest);
+
 						// only drop balls if the previous move removed nothing
 						FieldItem[] matches = removeLines(); 
 						GameLogic.this.mUndoState.mBallsRemovedFirstPass = matches;
@@ -172,7 +180,6 @@ public class GameLogic implements IGameEvent {
 			
 		});
 		
-		newUndoState(pSource, pDest);
 		
 		return true;
 	}
@@ -412,11 +419,12 @@ public class GameLogic implements IGameEvent {
 		
 		mGameState = GameState.ANIMATING_UNDOING; 
 		setCanUndo(false);
+		mComboBonus = 0;
 		
-		int scoreDelta = mUndoState.mScore - mScore; 
-		mScore = mUndoState.mScore;
+		//int scoreDelta = mUndoState.mScore - mScore; 
+		mScore = mUndoState.mScore - UNDO_PENALTY;
 		mScoreDisplay.setScore(mScore);
-		//mPlayingField.showScoreDelta(scoreDelta);
+		mPlayingField.showScoreDelta(- UNDO_PENALTY);
 		if (mUndoState.mBallsRemovedSecondPass != null) {
 			for (FieldItem f : mUndoState.mBallsRemovedSecondPass) {
 				mPlayingField.addBall(new Point(f.mX, f.mY), f.mColor, 0);

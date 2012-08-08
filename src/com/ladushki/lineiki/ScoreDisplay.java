@@ -60,7 +60,12 @@ public class ScoreDisplay extends Entity {
 	
 	public void setScore(int score) {
 		float DURATION = 1.0f;
-		final int [] newDigits = {score % 1000 / 100, score % 100 / 10, score % 10};
+		int absScore = Math.abs(score);
+		final int [] newDigits = {absScore % 1000 / 100, absScore % 100 / 10, absScore % 10};
+
+		if (score < 0) {
+			newDigits[0] = 11;
+		}
 		
 		for (int i = 0; i < mNumDigits; i++) {
 			

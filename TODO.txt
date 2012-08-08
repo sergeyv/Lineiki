@@ -16,7 +16,17 @@ TODO:
 -- move text to resources
 -- play with i18n
 
-- fix Undo
++ fix Undo
++ Undoing a move should result in a some penalty
+
++ make score delta popup not to hide behind the right edge of the screen
++ score display can't display negative numbers 
+  (for example, when undo-ing a move in the beginning of a game)
+- the game can't handle scores above 999
++ add Continue item to the menu
+
+- icon
+- check that Manifest defines everything that is needed
 
 
 LATER:
